@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Meani Real Estate</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<header class="header">
+    <div class="logo">
+        <span class="symbol-m">M</span><span class="text-rest">eani</span>
+    </div>
+
+    <nav class="nav">
+        <a>Home</a>
+        <a>Service</a>
+        <a>Agents</a>
+        <a>Contact</a>
+    </nav>
+
+    <div class="actions">
+        <span class="icon">🔍</span>
+        <span class="icon">👤</span>
+        <button class="btn-login" id="openLogin">Log in</button>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="hero-left">
+        <h1>
+            Find Your<br>
+            Dream Home
+        </h1>
+
+        <p>
+            Explore our curated selection of exquisite properties
+            meticulously tailored to your unique dream home vision
+        </p>
+    </div>
+
+    <div class="hero-right">
+        <img src="/img/house.png" alt="Modern House">
+    </div>
+</section>
+
+<!-- Login Modal -->
+<div id="overlay" class="overlay"></div>
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Welcome Back</h2>
+        <p class="modal-subtitle">Sign in to your account</p>
+        <form>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="your@email.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <div class="form-remember">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember" class="remember-label">Remember me</label>
+            </div>
+            <button type="submit" class="btn-submit">Sign In</button>
+        </form>
+    </div>
+</div>
+
+<script src="/js/script.js"></script>
+</body>
+</html>
