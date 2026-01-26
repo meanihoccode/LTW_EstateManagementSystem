@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Meani Real Estate</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="symbol-m">M</span><span class="text-rest">eani</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item active">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/properties" class="nav-item">
+                    <span class="icon">🏠</span>
+                    <span>BĐS</span>
+                </a>
+                <a href="/contracts" class="nav-item">
+                    <span class="icon">📜</span>
+                    <span>Hợp đồng</span>
+                </a>
+                <a href="/payments" class="nav-item">
+                    <span class="icon">💰</span>
+                    <span>Thanh toán</span>
+                </a>
+                <a href="/tenants" class="nav-item">
+                    <span class="icon">👥</span>
+                    <span>Khách thuê</span>
+                </a>
+                <a href="/owners" class="nav-item">
+                    <span class="icon">👤</span>
+                    <span>Chủ sở hữu</span>
+                </a>
+                <a href="/staff" class="nav-item">
+                    <span class="icon">👨‍💼</span>
+                    <span>Nhân viên</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <h1>Dashboard</h1>
+                <div class="user-section">
+                    <span class="user">👤 Manager</span>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <span class="stat-icon">🏠</span>
+                        <div>
+                            <div class="stat-label">Tổng BĐS</div>
+                            <div class="stat-value" id="totalProperties">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-icon">📜</span>
+                        <div>
+                            <div class="stat-label">Hợp đồng Hoạt động</div>
+                            <div class="stat-value" id="activeContracts">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-icon">💰</span>
+                        <div>
+                            <div class="stat-label">Doanh thu tháng</div>
+                            <div class="stat-value" id="monthRevenue">$0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-icon">⚠️</span>
+                        <div>
+                            <div class="stat-label">BĐS Trống</div>
+                            <div class="stat-value" id="emptyProperties">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tables Section -->
+                <div class="tables-section">
+                    <!-- Hợp đồng gần đây -->
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h2>Hợp đồng gần đây</h2>
+                            <a href="/contracts" class="link">Xem tất cả</a>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>BĐS</th>
+                                    <th>Khách thuê</th>
+                                    <th>Ngày kết thúc</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contractsTable">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #999;">Đang tải...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- BĐS gần đây -->
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h2>BĐS gần đây</h2>
+                            <a href="/properties" class="link">Xem tất cả</a>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên BĐS</th>
+                                    <th>Địa chỉ</th>
+                                    <th>Giá thuê</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="propertiesTable">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #999;">Đang tải...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Thanh toán gần đây -->
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h2>Thanh toán gần đây</h2>
+                            <a href="/payments" class="link">Xem tất cả</a>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Hợp đồng</th>
+                                    <th>Số tiền</th>
+                                    <th>Ngày</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsTable">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #999;">Đang tải...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Load data from API (placeholder - sẽ kết nối backend sau)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dữ liệu mẫu
+            document.getElementById('totalProperties').textContent = '45';
+            document.getElementById('activeContracts').textContent = '28';
+            document.getElementById('monthRevenue').textContent = '$45,200';
+            document.getElementById('emptyProperties').textContent = '12';
+
+            // Sample contracts data
+            const contractsHtml = `
+                <tr>
+                    <td>HĐ-001</td>
+                    <td>BĐS-001</td>
+                    <td>Nguyễn Văn A</td>
+                    <td>15/06/2026</td>
+                    <td><span class="badge active">Hiệu lực</span></td>
+                </tr>
+                <tr>
+                    <td>HĐ-002</td>
+                    <td>BĐS-002</td>
+                    <td>Trần Thị B</td>
+                    <td>30/08/2026</td>
+                    <td><span class="badge active">Hiệu lực</span></td>
+                </tr>
+                <tr>
+                    <td>HĐ-003</td>
+                    <td>BĐS-003</td>
+                    <td>Phạm Minh C</td>
+                    <td>10/05/2026</td>
+                    <td><span class="badge pending">Chờ thanh toán</span></td>
+                </tr>
+            `;
+            document.getElementById('contractsTable').innerHTML = contractsHtml;
+
+            // Sample properties data
+            const propertiesHtml = `
+                <tr>
+                    <td>BĐS-001</td>
+                    <td>Căn hộ Quận 1</td>
+                    <td>123 Nguyễn Huệ, Q1</td>
+                    <td>$1,200</td>
+                    <td><span class="badge rented">Cho thuê</span></td>
+                </tr>
+                <tr>
+                    <td>BĐS-002</td>
+                    <td>Nhà Quận 5</td>
+                    <td>456 Lê Lợi, Q5</td>
+                    <td>$950</td>
+                    <td><span class="badge rented">Cho thuê</span></td>
+                </tr>
+                <tr>
+                    <td>BĐS-003</td>
+                    <td>Biệt thự Quận 7</td>
+                    <td>789 Trần Hưng Đạo, Q7</td>
+                    <td>$1,500</td>
+                    <td><span class="badge empty">Trống</span></td>
+                </tr>
+            `;
+            document.getElementById('propertiesTable').innerHTML = propertiesHtml;
+
+            // Sample payments data
+            const paymentsHtml = `
+                <tr>
+                    <td>TT-001</td>
+                    <td>HĐ-001</td>
+                    <td>$1,200</td>
+                    <td>25/01/2026</td>
+                    <td><span class="badge active">Đã duyệt</span></td>
+                </tr>
+                <tr>
+                    <td>TT-002</td>
+                    <td>HĐ-002</td>
+                    <td>$950</td>
+                    <td>23/01/2026</td>
+                    <td><span class="badge active">Đã duyệt</span></td>
+                </tr>
+                <tr>
+                    <td>TT-003</td>
+                    <td>HĐ-003</td>
+                    <td>$1,500</td>
+                    <td>22/01/2026</td>
+                    <td><span class="badge pending">Chờ duyệt</span></td>
+                </tr>
+            `;
+            document.getElementById('paymentsTable').innerHTML = paymentsHtml;
+        });
+    </script>
+</body>
+</html>
+

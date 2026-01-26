@@ -11,5 +11,38 @@ public class WebController {
         return "index";
     }
 
-}
+    @GetMapping("/dashboard")
+    public String dashboard() {
+        return "dashboard";
+    }
 
+    @GetMapping("/properties")
+    public String properties() {
+        return "dashboard";
+    }
+
+    @GetMapping("/contracts")
+    public String contracts() {
+        return "dashboard";
+    }
+
+    @GetMapping("/payments")
+    public String payments() {
+        return "dashboard";
+    }
+
+    @GetMapping("/tenants")
+    public String tenants() {
+        return "dashboard";
+    }
+
+    @GetMapping("/owners")
+    public String owners() {
+        return "dashboard";
+    }
+
+    @GetMapping("/staff")
+    public String staff() {
+        return "dashboard";
+    }
+}
