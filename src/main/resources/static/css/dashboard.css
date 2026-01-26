@@ -257,6 +257,256 @@ tbody tr:hover {
     color: #3f3f9f;
 }
 
+/* ========== BUTTONS ========== */
+.btn-primary {
+    background-color: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #5568d3;
+}
+
+.btn-secondary {
+    background-color: #e8ecf1;
+    color: #555;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: #dae0e5;
+}
+
+.btn-small {
+    background-color: #667eea;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-small:hover {
+    background-color: #5568d3;
+}
+
+.btn-danger {
+    background-color: #e74c3c !important;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b !important;
+}
+
+.btn-logout {
+    background-color: #e74c3c;
+    color: white !important;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
+    display: inline-block;
+}
+
+.btn-logout:hover {
+    background-color: #c0392b;
+    text-decoration: none;
+}
+
+/* ========== SEARCH & FILTER ========== */
+.search-filter {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.search-filter input,
+.search-filter select {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #e8ecf1;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.search-filter input:focus,
+.search-filter select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.search-filter select {
+    flex: 0.3;
+    cursor: pointer;
+}
+
+/* ========== MODAL ========== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 500px;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #e8ecf1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s;
+}
+
+.close-btn:hover {
+    color: #1a1a1a;
+}
+
+/* ========== FORM ========== */
+form {
+    padding: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-row:last-child {
+    margin-bottom: 0;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select {
+    padding: 10px;
+    border: 1px solid #e8ecf1;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: 'Poppins', sans-serif;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.modal-actions button {
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    transition: background 0.2s;
+}
+
+/* ========== BADGES ADDITIONAL ========== */
+.badge.inactive {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.badge.maintenance {
+    background-color: #ffeaa7;
+    color: #d63031;
+}
+
 /* ========== SCROLLBAR ========== */
 ::-webkit-scrollbar {
     width: 8px;

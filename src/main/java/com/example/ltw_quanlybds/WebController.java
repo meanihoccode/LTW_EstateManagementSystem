@@ -2,6 +2,7 @@ package com.example.ltw_quanlybds;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 public class WebController {
@@ -18,31 +19,37 @@ public class WebController {
 
     @GetMapping("/properties")
     public String properties() {
-        return "dashboard";
+        return "properties";
     }
 
     @GetMapping("/contracts")
     public String contracts() {
-        return "dashboard";
+        return "contracts";
     }
 
     @GetMapping("/payments")
     public String payments() {
-        return "dashboard";
+        return "payments";
     }
 
     @GetMapping("/tenants")
     public String tenants() {
-        return "dashboard";
+        return "tenants";
     }
 
     @GetMapping("/owners")
     public String owners() {
-        return "dashboard";
+        return "owners";
     }
 
     @GetMapping("/staff")
     public String staff() {
-        return "dashboard";
+        return "staff";
     }
+
+    @PostMapping("/login")
+    public String login() {
+        return "redirect:/dashboard";
+    }
+
 }
