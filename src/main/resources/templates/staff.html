@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Nhân Viên - Meani Real Estate</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="symbol-m">M</span><span class="text-rest">eani</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/properties" class="nav-item">
+                    <span class="icon">🏠</span>
+                    <span>BĐS</span>
+                </a>
+                <a href="/contracts" class="nav-item">
+                    <span class="icon">📜</span>
+                    <span>Hợp đồng</span>
+                </a>
+                <a href="/payments" class="nav-item">
+                    <span class="icon">💰</span>
+                    <span>Thanh toán</span>
+                </a>
+                <a href="/tenants" class="nav-item">
+                    <span class="icon">👥</span>
+                    <span>Khách thuê</span>
+                </a>
+                <a href="/owners" class="nav-item">
+                    <span class="icon">👤</span>
+                    <span>Chủ sở hữu</span>
+                </a>
+                <a href="/staff" class="nav-item active">
+                    <span class="icon">👨‍💼</span>
+                    <span>Nhân viên</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <h1>Quản lý Nhân Viên</h1>
+                <div class="user-section">
+                    <button class="btn-primary" id="addStaffBtn">+ Thêm Nhân Viên</button>
+                    <a href="/" class="btn-logout">Đăng xuất</a>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="dashboard-content">
+                <!-- Search & Filter -->
+                <div class="search-filter">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên hoặc chức vụ...">
+                </div>
+
+                <!-- Staff Table -->
+                <div class="table-card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Họ tên</th>
+                                <th>Điện thoại</th>
+                                <th>Chức vụ</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffTable">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #999;">Đang tải...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Thêm/Sửa Nhân Viên -->
+    <div id="staffModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Thêm Nhân Viên</h2>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
+            </div>
+            <form id="staffForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Họ tên:</label>
+                        <input type="text" id="hoTen" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Điện thoại:</label>
+                        <input type="tel" id="soDienThoai" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group full">
+                        <label>Chức vụ:</label>
+                        <select id="vaiTro" required>
+                            <option>Quản lý</option>
+                            <option>Nhân viên kinh doanh</option>
+                            <option>Nhân viên kỹ thuật</option>
+                            <option>Nhân viên hành chính</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancelBtn">Hủy</button>
+                    <button type="submit" class="btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let staffData = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStaff();
+            setupEventListeners();
+        });
+
+        function loadStaff() {
+            staffData = [
+                {
+                    id: 1,
+                    hoTen: 'Lê Văn X',
+                    soDienThoai: '0901234567',
+                    vaiTro: 'Quản lý'
+                },
+                {
+                    id: 2,
+                    hoTen: 'Hoàng Thị Y',
+                    soDienThoai: '0912345678',
+                    vaiTro: 'Nhân viên kinh doanh'
+                },
+                {
+                    id: 3,
+                    hoTen: 'Đặng Minh Z',
+                    soDienThoai: '0923456789',
+                    vaiTro: 'Nhân viên kinh doanh'
+                }
+            ];
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('staffTable');
+            if (staffData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Không có dữ liệu</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = staffData.map(s => `
+                <tr>
+                    <td>#${s.id}</td>
+                    <td>${s.hoTen}</td>
+                    <td>${s.soDienThoai}</td>
+                    <td>${s.vaiTro}</td>
+                    <td>
+                        <button class="btn-small" onclick="editStaff(${s.id})">Sửa</button>
+                        <button class="btn-small btn-danger" onclick="deleteStaff(${s.id})">Xóa</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function setupEventListeners() {
+            document.getElementById('addStaffBtn').addEventListener('click', openModal);
+            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+            document.getElementById('cancelBtn').addEventListener('click', closeModal);
+            document.getElementById('staffForm').addEventListener('submit', saveStaff);
+
+            document.getElementById('searchInput').addEventListener('keyup', filterTable);
+        }
+
+        function openModal() {
+            document.getElementById('modalTitle').textContent = 'Thêm Nhân Viên';
+            document.getElementById('staffForm').reset();
+            document.getElementById('staffModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('staffModal').style.display = 'none';
+        }
+
+        function saveStaff(e) {
+            e.preventDefault();
+            const staff = {
+                id: staffData.length + 1,
+                hoTen: document.getElementById('hoTen').value,
+                soDienThoai: document.getElementById('soDienThoai').value,
+                vaiTro: document.getElementById('vaiTro').value
+            };
+            staffData.push(staff);
+            renderTable();
+            closeModal();
+        }
+
+        function editStaff(id) {
+            alert('Chức năng sửa sẽ được phát triển');
+        }
+
+        function deleteStaff(id) {
+            if (confirm('Bạn có chắc muốn xóa?')) {
+                staffData = staffData.filter(s => s.id !== id);
+                renderTable();
+            }
+        }
+
+        function filterTable() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+
+            const filtered = staffData.filter(s => {
+                return s.hoTen.toLowerCase().includes(searchText) ||
+                       s.vaiTro.toLowerCase().includes(searchText);
+            });
+
+            const tbody = document.getElementById('staffTable');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Không tìm thấy kết quả</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(s => `
+                <tr>
+                    <td>#${s.id}</td>
+                    <td>${s.hoTen}</td>
+                    <td>${s.soDienThoai}</td>
+                    <td>${s.vaiTro}</td>
+                    <td>
+                        <button class="btn-small" onclick="editStaff(${s.id})">Sửa</button>
+                        <button class="btn-small btn-danger" onclick="deleteStaff(${s.id})">Xóa</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('staffModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
+

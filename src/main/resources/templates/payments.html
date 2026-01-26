@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Thanh Toán - Meani Real Estate</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="symbol-m">M</span><span class="text-rest">eani</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/properties" class="nav-item">
+                    <span class="icon">🏠</span>
+                    <span>BĐS</span>
+                </a>
+                <a href="/contracts" class="nav-item">
+                    <span class="icon">📜</span>
+                    <span>Hợp đồng</span>
+                </a>
+                <a href="/payments" class="nav-item active">
+                    <span class="icon">💰</span>
+                    <span>Thanh toán</span>
+                </a>
+                <a href="/tenants" class="nav-item">
+                    <span class="icon">👥</span>
+                    <span>Khách thuê</span>
+                </a>
+                <a href="/owners" class="nav-item">
+                    <span class="icon">👤</span>
+                    <span>Chủ sở hữu</span>
+                </a>
+                <a href="/staff" class="nav-item">
+                    <span class="icon">👨‍💼</span>
+                    <span>Nhân viên</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <h1>Quản lý Thanh Toán</h1>
+                <div class="user-section">
+                    <button class="btn-primary" id="addPaymentBtn">+ Thêm Thanh Toán</button>
+                    <a href="/" class="btn-logout">Đăng xuất</a>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="dashboard-content">
+                <!-- Search & Filter -->
+                <div class="search-filter">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm theo ID hoặc hợp đồng...">
+                    <select id="filterStatus">
+                        <option value="">-- Tất cả trạng thái --</option>
+                        <option value="Đã duyệt">Đã duyệt</option>
+                        <option value="Chờ duyệt">Chờ duyệt</option>
+                        <option value="Từ chối">Từ chối</option>
+                    </select>
+                </div>
+
+                <!-- Payments Table -->
+                <div class="table-card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Hợp Đồng</th>
+                                <th>Ngày thanh toán</th>
+                                <th>Số tiền</th>
+                                <th>Phương thức</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTable">
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: #999;">Đang tải...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Thêm/Sửa Thanh Toán -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Thêm Thanh Toán</h2>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
+            </div>
+            <form id="paymentForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Hợp Đồng:</label>
+                        <select id="hopDong" required>
+                            <option>-- Chọn hợp đồng --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ngày thanh toán:</label>
+                        <input type="date" id="ngayThanhToan" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Số tiền ($):</label>
+                        <input type="number" id="soTien" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phương thức:</label>
+                        <select id="phuongThuc" required>
+                            <option>Chuyển khoản</option>
+                            <option>Tiền mặt</option>
+                            <option>Séc</option>
+                            <option>Khác</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group full">
+                        <label>Trạng thái:</label>
+                        <select id="trangThai" required>
+                            <option>Đã duyệt</option>
+                            <option>Chờ duyệt</option>
+                            <option>Từ chối</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancelBtn">Hủy</button>
+                    <button type="submit" class="btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let paymentsData = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPayments();
+            loadContracts();
+            setupEventListeners();
+        });
+
+        function loadPayments() {
+            paymentsData = [
+                {
+                    id: 1,
+                    hopDong: 'HĐ-001',
+                    ngayThanhToan: '25/01/2026',
+                    soTien: 1200,
+                    phuongThuc: 'Chuyển khoản',
+                    trangThai: 'Đã duyệt'
+                },
+                {
+                    id: 2,
+                    hopDong: 'HĐ-002',
+                    ngayThanhToan: '23/01/2026',
+                    soTien: 950,
+                    phuongThuc: 'Chuyển khoản',
+                    trangThai: 'Đã duyệt'
+                },
+                {
+                    id: 3,
+                    hopDong: 'HĐ-003',
+                    ngayThanhToan: '22/01/2026',
+                    soTien: 1500,
+                    phuongThuc: 'Tiền mặt',
+                    trangThai: 'Chờ duyệt'
+                }
+            ];
+            renderTable();
+        }
+
+        function loadContracts() {
+            const select = document.getElementById('hopDong');
+            const contracts = ['HĐ-001', 'HĐ-002', 'HĐ-003', 'HĐ-004', 'HĐ-005'];
+            contracts.forEach(contract => {
+                const option = document.createElement('option');
+                option.value = contract;
+                option.textContent = contract;
+                select.appendChild(option);
+            });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('paymentsTable');
+            if (paymentsData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">Không có dữ liệu</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = paymentsData.map(p => `
+                <tr>
+                    <td>#${p.id}</td>
+                    <td>${p.hopDong}</td>
+                    <td>${p.ngayThanhToan}</td>
+                    <td>$${p.soTien}</td>
+                    <td>${p.phuongThuc}</td>
+                    <td><span class="badge ${getStatusClass(p.trangThai)}">${p.trangThai}</span></td>
+                    <td>
+                        <button class="btn-small" onclick="editPayment(${p.id})">Sửa</button>
+                        <button class="btn-small btn-danger" onclick="deletePayment(${p.id})">Xóa</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 'Đã duyệt': return 'active';
+                case 'Chờ duyệt': return 'pending';
+                case 'Từ chối': return 'inactive';
+                default: return '';
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('addPaymentBtn').addEventListener('click', openModal);
+            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+            document.getElementById('cancelBtn').addEventListener('click', closeModal);
+            document.getElementById('paymentForm').addEventListener('submit', savePayment);
+
+            document.getElementById('searchInput').addEventListener('keyup', filterTable);
+            document.getElementById('filterStatus').addEventListener('change', filterTable);
+        }
+
+        function openModal() {
+            document.getElementById('modalTitle').textContent = 'Thêm Thanh Toán';
+            document.getElementById('paymentForm').reset();
+            document.getElementById('paymentModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+        }
+
+        function savePayment(e) {
+            e.preventDefault();
+            const payment = {
+                id: paymentsData.length + 1,
+                hopDong: document.getElementById('hopDong').value,
+                ngayThanhToan: document.getElementById('ngayThanhToan').value,
+                soTien: document.getElementById('soTien').value,
+                phuongThuc: document.getElementById('phuongThuc').value,
+                trangThai: document.getElementById('trangThai').value
+            };
+            paymentsData.push(payment);
+            renderTable();
+            closeModal();
+        }
+
+        function editPayment(id) {
+            alert('Chức năng sửa sẽ được phát triển');
+        }
+
+        function deletePayment(id) {
+            if (confirm('Bạn có chắc muốn xóa?')) {
+                paymentsData = paymentsData.filter(p => p.id !== id);
+                renderTable();
+            }
+        }
+
+        function filterTable() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('filterStatus').value;
+
+            const filtered = paymentsData.filter(p => {
+                const matchesSearch = p.hopDong.toLowerCase().includes(searchText);
+                const matchesStatus = statusFilter === '' || p.trangThai === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+
+            const tbody = document.getElementById('paymentsTable');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">Không tìm thấy kết quả</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(p => `
+                <tr>
+                    <td>#${p.id}</td>
+                    <td>${p.hopDong}</td>
+                    <td>${p.ngayThanhToan}</td>
+                    <td>$${p.soTien}</td>
+                    <td>${p.phuongThuc}</td>
+                    <td><span class="badge ${getStatusClass(p.trangThai)}">${p.trangThai}</span></td>
+                    <td>
+                        <button class="btn-small" onclick="editPayment(${p.id})">Sửa</button>
+                        <button class="btn-small btn-danger" onclick="deletePayment(${p.id})">Xóa</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('paymentModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
+

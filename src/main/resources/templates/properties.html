@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý BĐS - Meani Real Estate</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="symbol-m">M</span><span class="text-rest">eani</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/properties" class="nav-item active">
+                    <span class="icon">🏠</span>
+                    <span>BĐS</span>
+                </a>
+                <a href="/contracts" class="nav-item">
+                    <span class="icon">📜</span>
+                    <span>Hợp đồng</span>
+                </a>
+                <a href="/payments" class="nav-item">
+                    <span class="icon">💰</span>
+                    <span>Thanh toán</span>
+                </a>
+                <a href="/tenants" class="nav-item">
+                    <span class="icon">👥</span>
+                    <span>Khách thuê</span>
+                </a>
+                <a href="/owners" class="nav-item">
+                    <span class="icon">👤</span>
+                    <span>Chủ sở hữu</span>
+                </a>
+                <a href="/staff" class="nav-item">
+                    <span class="icon">👨‍💼</span>
+                    <span>Nhân viên</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <h1>Quản lý Bất Động Sản</h1>
+                <div class="user-section">
+                    <button class="btn-primary" id="addPropertyBtn">+ Thêm BĐS</button>
+                    <a href="/" class="btn-logout">Đăng xuất</a>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="dashboard-content">
+                <!-- Search & Filter -->
+                <div class="search-filter">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên hoặc địa chỉ...">
+                    <select id="filterStatus">
+                        <option value="">-- Tất cả trạng thái --</option>
+                        <option value="Cho thuê">Cho thuê</option>
+                        <option value="Trống">Trống</option>
+                        <option value="Bảo trì">Bảo trì</option>
+                    </select>
+                </div>
+
+                <!-- Properties Table -->
+                <div class="table-card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên BĐS</th>
+                                <th>Loại</th>
+                                <th>Địa chỉ</th>
+                                <th>Diện tích</th>
+                                <th>Giá thuê</th>
+                                <th>Trạng thái</th>
+                                <th>Chủ sở hữu</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="propertiesTable">
+                            <tr>
+                                <td colspan="9" style="text-align: center; color: #999;">Đang tải...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Thêm/Sửa BĐS -->
+    <div id="propertyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Thêm Bất Động Sản</h2>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
+            </div>
+            <form id="propertyForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tên BĐS:</label>
+                        <input type="text" id="tenBDS" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Loại BĐS:</label>
+                        <select id="loaiBDS" required>
+                            <option>Căn hộ</option>
+                            <option>Nhà riêng</option>
+                            <option>Biệt thự</option>
+                            <option>Cửa hàng</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group full">
+                        <label>Địa chỉ:</label>
+                        <input type="text" id="diaChi" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Diện tích (m²):</label>
+                        <input type="number" id="dienTich" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Giá thuê ($/tháng):</label>
+                        <input type="number" id="giaThue" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Trạng thái:</label>
+                        <select id="trangThai" required>
+                            <option>Cho thuê</option>
+                            <option>Trống</option>
+                            <option>Bảo trì</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Chủ sở hữu:</label>
+                        <select id="chuSoHuu" required>
+                            <option>-- Chọn chủ sở hữu --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancelBtn">Hủy</button>
+                    <button type="submit" class="btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let propertiesData = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProperties();
+            loadOwners();
+            setupEventListeners();
+        });
+
+        function loadProperties() {
+            // Sample data
+            propertiesData = [
+                {
+                    id: 1,
+                    tenBDS: 'Căn hộ Quận 1',
+                    loaiBDS: 'Căn hộ',
+                    diaChi: '123 Nguyễn Huệ, Q1',
+                    dienTich: 85,
+                    giaThue: 1200,
+                    trangThai: 'Cho thuê',
+                    chuSoHuu: 'Nguyễn Văn A'
+                },
+                {
+                    id: 2,
+                    tenBDS: 'Nhà Quận 5',
+                    loaiBDS: 'Nhà riêng',
+                    diaChi: '456 Lê Lợi, Q5',
+                    dienTich: 120,
+                    giaThue: 950,
+                    trangThai: 'Cho thuê',
+                    chuSoHuu: 'Trần Thị B'
+                },
+                {
+                    id: 3,
+                    tenBDS: 'Biệt thự Quận 7',
+                    loaiBDS: 'Biệt thự',
+                    diaChi: '789 Trần Hưng Đạo, Q7',
+                    dienTich: 200,
+                    giaThue: 1500,
+                    trangThai: 'Trống',
+                    chuSoHuu: 'Phạm Minh C'
+                }
+            ];
+            renderTable();
+        }
+
+        function loadOwners() {
+            // Sample owners
+            const ownerSelect = document.getElementById('chuSoHuu');
+            const owners = ['Nguyễn Văn A', 'Trần Thị B', 'Phạm Minh C', 'Hoàng Tuấn D'];
+            owners.forEach(owner => {
+                const option = document.createElement('option');
+                option.value = owner;
+                option.textContent = owner;
+                ownerSelect.appendChild(option);
+            });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('propertiesTable');
+            if (propertiesData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">Không có dữ liệu</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = propertiesData.map(p => `
+                <tr>
+                    <td>#${p.id}</td>
+                    <td>${p.tenBDS}</td>
+                    <td>${p.loaiBDS}</td>
+                    <td>${p.diaChi}</td>
+                    <td>${p.dienTich}</td>
+                    <td>$${p.giaThue}</td>
+                    <td><span class="badge ${getStatusClass(p.trangThai)}">${p.trangThai}</span></td>
+                    <td>${p.chuSoHuu}</td>
+                    <td>
+                        <button class="btn-small" onclick="editProperty(${p.id})">Sửa</button>
+                        <button class="btn-small btn-danger" onclick="deleteProperty(${p.id})">Xóa</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 'Cho thuê': return 'rented';
+                case 'Trống': return 'empty';
+                case 'Bảo trì': return 'maintenance';
+                default: return '';
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('addPropertyBtn').addEventListener('click', openModal);
+            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+            document.getElementById('cancelBtn').addEventListener('click', closeModal);
+            document.getElementById('propertyForm').addEventListener('submit', saveProperty);
+
+            document.getElementById('searchInput').addEventListener('keyup', filterTable);
+            document.getElementById('filterStatus').addEventListener('change', filterTable);
+        }
+
+        function openModal() {
+            document.getElementById('modalTitle').textContent = 'Thêm Bất Động Sản';
+            document.getElementById('propertyForm').reset();
+            document.getElementById('propertyModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('propertyModal').style.display = 'none';
+        }
+
+        function saveProperty(e) {
+            e.preventDefault();
+            const property = {
+                id: propertiesData.length + 1,
+                tenBDS: document.getElementById('tenBDS').value,
+                loaiBDS: document.getElementById('loaiBDS').value,
+                diaChi: document.getElementById('diaChi').value,
+                dienTich: document.getElementById('dienTich').value,
+                giaThue: document.getElementById('giaThue').value,
+                trangThai: document.getElementById('trangThai').value,
+                chuSoHuu: document.getElementById('chuSoHuu').value
+            };
+            propertiesData.push(property);
+            renderTable();
+            closeModal();
+        }
+
+        function editProperty(id) {
+            alert('Chức năng sửa sẽ được phát triển');
+        }
+
+        function deleteProperty(id) {
+            if (confirm('Bạn có chắc muốn xóa?')) {
+                propertiesData = propertiesData.filter(p => p.id !== id);
+                renderTable();
+            }
+        }
+
+        function filterTable() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('filterStatus').value;
+
+            const filtered = propertiesData.filter(p => {
+                const matchesSearch = p.tenBDS.toLowerCase().includes(searchText) ||
+                                    p.diaChi.toLowerCase().includes(searchText);
+                const matchesStatus = statusFilter === '' || p.trangThai === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+
+            const tbody = document.getElementById('propertiesTable');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">Không tìm thấy kết quả</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(p => `
+                <tr>
+                    <td>#${p.id}</td>
+                    <td>${p.tenBDS}</td>
+                    <td>${p.loaiBDS}</td>
+                    <td>${p.diaChi}</td>
+                    <td>${p.dienTich}</td>
+                    <td>$${p.giaThue}</td>
+                    <td><span class="badge ${getStatusClass(p.trangThai)}">${p.trangThai}</span></td>
+                    <td>${p.chuSoHuu}</td>
+                    <td>
+                        <button class="btn-small" onclick="editProperty(${p.id})">Sửa</button>
+                        <button class="btn-small btn-danger" onclick="deleteProperty(${p.id})">Xóa</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('propertyModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
+
