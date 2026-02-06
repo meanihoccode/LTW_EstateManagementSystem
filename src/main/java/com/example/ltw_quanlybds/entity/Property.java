@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "BatDongSan")
+@Table(name = "batdongsan")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,7 +29,7 @@ public class Property {
     private String address;
 
     @Column(name = "dien_tich")
-    private Float area;
+    private BigDecimal area;
 
     @Column(name = "gia_thue")
     private BigDecimal rentalPrice;
