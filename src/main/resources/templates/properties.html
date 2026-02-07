@@ -267,6 +267,10 @@
         function openModal() {
             document.getElementById('modalTitle').textContent = 'Thêm Bất Động Sản';
             document.getElementById('propertyForm').reset();
+
+            // QUAN TRỌNG: Xóa editingId để máy biết đây là thêm mới, không phải sửa
+            delete document.getElementById('propertyForm').dataset.editingId;
+
             document.getElementById('propertyModal').style.display = 'block';
         }
 
@@ -276,23 +280,70 @@
 
         function saveProperty(e) {
             e.preventDefault();
-            const property = {
-                id: propertiesData.length + 1,
+
+            // Lấy ID đang sửa (nếu có)
+            const editingId = document.getElementById('propertyForm').dataset.editingId;
+
+            // Lấy dữ liệu từ form ra một object
+            const formData = {
                 tenBDS: document.getElementById('tenBDS').value,
                 loaiBDS: document.getElementById('loaiBDS').value,
                 diaChi: document.getElementById('diaChi').value,
-                dienTich: document.getElementById('dienTich').value,
-                giaThue: document.getElementById('giaThue').value,
+                dienTich: Number(document.getElementById('dienTich').value),
+                giaThue: Number(document.getElementById('giaThue').value),
                 trangThai: document.getElementById('trangThai').value,
                 chuSoHuu: document.getElementById('chuSoHuu').value
             };
-            propertiesData.push(property);
-            renderTable();
-            closeModal();
+
+            if (editingId) {
+                // --- TRƯỜNG HỢP 1: ĐANG SỬA ---
+                const index = propertiesData.findIndex(p => p.id == editingId);
+                if (index !== -1) {
+                    // Giữ nguyên ID cũ, chỉ cập nhật thông tin mới
+                    propertiesData[index] = {
+                        id: parseInt(editingId),
+                        ...formData
+                    };
+                }
+                // Xóa ID đang nhớ để tránh lỗi lần sau
+                delete document.getElementById('propertyForm').dataset.editingId;
+            } else {
+                // --- TRƯỜNG HỢP 2: THÊM MỚI ---
+                // Tạo ID mới (Lấy ID lớn nhất + 1)
+                const newId = propertiesData.length > 0 ? Math.max(...propertiesData.map(p => p.id)) + 1 : 1;
+
+                const newProperty = {
+                    id: newId,
+                    ...formData
+                };
+                propertiesData.push(newProperty);
+            }
+
+            renderTable(); // Vẽ lại bảng
+            closeModal();  // Đóng modal
         }
 
         function editProperty(id) {
-            alert('Chức năng sửa sẽ được phát triển');
+            // 1. Tìm bất động sản trong mảng dựa vào ID
+            const property = propertiesData.find(p => p.id === id);
+
+            if (!property) return; // Nếu không thấy thì thôi
+
+            // 2. Đổ dữ liệu vào các ô input (Đây là bước làm dữ liệu hiện ra)
+            document.getElementById('tenBDS').value = property.tenBDS;
+            document.getElementById('loaiBDS').value = property.loaiBDS;
+            document.getElementById('diaChi').value = property.diaChi;
+            document.getElementById('dienTich').value = property.dienTich;
+            document.getElementById('giaThue').value = property.giaThue;
+            document.getElementById('trangThai').value = property.trangThai;
+            document.getElementById('chuSoHuu').value = property.chuSoHuu;
+
+            // 3. Đánh dấu là đang sửa ID nào (Lưu vào thuộc tính data-id của form)
+            document.getElementById('propertyForm').dataset.editingId = id;
+
+            // 4. Mở Modal và đổi tiêu đề
+            document.getElementById('modalTitle').textContent = 'Sửa Bất Động Sản';
+            document.getElementById('propertyModal').style.display = 'block';
         }
 
         function deleteProperty(id) {
@@ -308,7 +359,7 @@
 
             const filtered = propertiesData.filter(p => {
                 const matchesSearch = p.tenBDS.toLowerCase().includes(searchText) ||
-                                    p.diaChi.toLowerCase().includes(searchText);
+                    p.diaChi.toLowerCase().includes(searchText);
                 const matchesStatus = statusFilter === '' || p.trangThai === statusFilter;
                 return matchesSearch && matchesStatus;
             });
