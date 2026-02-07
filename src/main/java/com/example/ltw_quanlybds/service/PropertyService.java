@@ -18,7 +18,6 @@ public class PropertyService {
 
     public List<Property> getAllProperties() {
         List<Property> properties = propertyRepository.findAll();
-        System.out.println("DEBUG: getAllProperties() returned " + properties.size() + " records");
         return properties;
     }
 
