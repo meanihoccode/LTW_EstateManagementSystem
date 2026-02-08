@@ -7,27 +7,24 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "nhanvien")
+@Table(name = "taikhoan")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "nhan_vien_id")
+    @Column(name = "tai_khoan_id")
     private Integer id;
 
-    @Column(name = "ho_ten")
-    private String fullName;
+    @Column(name = "ten_dang_nhap", unique = true)
+    private String username;
 
-    @Column(name = "so_dien_thoai")
-    private String phone;
+    @Column(name = "mat_khau")
+    private String password;
 
-    @Column(name = "vai_tro")
+    @Column(name = "quyen_han")
     private String role;
-
-    @Column(name = "tai_khoan_id")
-    private Integer accountId;
 }
 
