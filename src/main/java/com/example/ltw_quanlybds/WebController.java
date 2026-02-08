@@ -47,6 +47,11 @@ public class WebController {
         return "staff";
     }
 
+    @GetMapping("/accounts")
+    public String accounts() {
+        return "accounts";
+    }
+
     @PostMapping("/login")
     public String login() {
         return "redirect:/dashboard";

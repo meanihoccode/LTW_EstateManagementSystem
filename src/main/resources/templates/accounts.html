@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Tài Khoản - Meani Real Estate</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .accounts-section {
+            margin-top: 20px;
+        }
+
+        .account-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #2b1d12;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .account-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .account-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-copy {
+            background: #e8f4f8;
+            color: #0066cc;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .btn-copy:hover {
+            background: #d0e8f0;
+        }
+
+        .btn-reset-pwd {
+            background: #fff3cd;
+            color: #856404;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .btn-reset-pwd:hover {
+            background: #ffeaa7;
+        }
+
+        .btn-delete-acc {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .btn-delete-acc:hover {
+            background: #f5c6cb;
+        }
+
+        .staff-info {
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .staff-info strong {
+            color: #2b1d12;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: #2b1d12;
+            color: white;
+        }
+
+        .tab-btn:hover {
+            background: #d4d4d4;
+        }
+
+        .tab-btn.active:hover {
+            background: #1a0e08;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="symbol-m">M</span><span class="text-rest">eani</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/properties" class="nav-item">
+                    <span class="icon">🏠</span>
+                    <span>BĐS</span>
+                </a>
+                <a href="/contracts" class="nav-item">
+                    <span class="icon">📜</span>
+                    <span>Hợp đồng</span>
+                </a>
+                <a href="/payments" class="nav-item">
+                    <span class="icon">💰</span>
+                    <span>Thanh toán</span>
+                </a>
+                <a href="/tenants" class="nav-item">
+                    <span class="icon">👥</span>
+                    <span>Khách thuê</span>
+                </a>
+                <a href="/owners" class="nav-item">
+                    <span class="icon">👤</span>
+                    <span>Chủ sở hữu</span>
+                </a>
+                <a href="/staff" class="nav-item">
+                    <span class="icon">👨‍💼</span>
+                    <span>Nhân viên</span>
+                </a>
+                <a href="/accounts" class="nav-item active">
+                    <span class="icon">🔐</span>
+                    <span>Tài khoản</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <h1>Quản lý Tài Khoản</h1>
+                <div class="user-section">
+                    <a href="/" class="btn-logout">Đăng xuất</a>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="dashboard-content">
+                <!-- Search & Filter -->
+                <div class="search-filter">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên tài khoản hoặc tên nhân viên...">
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="filter-tabs">
+                    <button class="tab-btn active" onclick="filterByRole('all')">Tất cả</button>
+                    <button class="tab-btn" onclick="filterByRole('Admin')">Admin</button>
+                    <button class="tab-btn" onclick="filterByRole('NhanVien')">Nhân viên</button>
+                </div>
+
+                <!-- Accounts Section -->
+                <div class="accounts-section" id="accountsContainer">
+                    <div style="text-align: center; color: #999; padding: 40px;">
+                        Đang tải tài khoản...
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let allAccounts = [];
+        let staffMap = {};
+        let currentFilter = 'all';
+
+        // Load danh sách tài khoản
+        async function loadAccounts() {
+            try {
+                const response = await fetch('/api/auth/accounts');
+                const data = await response.json();
+                allAccounts = data;
+
+                // Load thông tin nhân viên
+                await loadStaffInfo();
+
+                displayAccounts(allAccounts);
+            } catch (error) {
+                console.error('Lỗi:', error);
+                document.getElementById('accountsContainer').innerHTML =
+                    '<div style="color: red; padding: 20px;">Lỗi khi tải dữ liệu!</div>';
+            }
+        }
+
+        // Load thông tin nhân viên
+        async function loadStaffInfo() {
+            try {
+                const response = await fetch('/api/staffs');
+                const data = await response.json();
+                data.forEach(staff => {
+                    staffMap[staff.accountId] = staff;
+                });
+            } catch (error) {
+                console.error('Lỗi tải nhân viên:', error);
+            }
+        }
+
+        // Hiển thị danh sách tài khoản
+        function displayAccounts(accounts) {
+            let html = '';
+
+            if (accounts.length === 0) {
+                html = '<div style="text-align: center; color: #999; padding: 40px;">Không có tài khoản nào</div>';
+            } else {
+                accounts.forEach(account => {
+                    const staff = staffMap[account.id];
+                    const staffName = staff ? staff.fullName : 'N/A';
+                    const staffPhone = staff ? staff.phone : 'N/A';
+
+                    html += `
+                        <div class="account-card">
+                            <div class="staff-info">
+                                <strong>👤 ${staffName}</strong> | 📞 ${staffPhone}
+                            </div>
+                            <div class="account-info">
+                                <div class="info-item">
+                                    <span class="info-label">Tên Tài Khoản</span>
+                                    <span class="info-value">${account.username}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Mật Khẩu</span>
+                                    <span class="info-value">
+                                        <span id="pwd-${account.id}" style="display: none;">${account.password}</span>
+                                        <span id="pwd-mask-${account.id}">••••••••</span>
+                                    </span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Quyền Hạn</span>
+                                    <span class="info-value">${account.role}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">ID Tài Khoản</span>
+                                    <span class="info-value">#${account.id}</span>
+                                </div>
+                            </div>
+                            <div class="account-actions">
+                                <button class="btn-copy" onclick="copyToClipboard('${account.username}')">
+                                    📋 Copy Username
+                                </button>
+                                <button class="btn-copy" onclick="togglePassword(${account.id})">
+                                    👁️ Xem MK
+                                </button>
+                                <button class="btn-reset-pwd" onclick="resetPassword(${account.id})">
+                                    🔄 Đặt Lại MK
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('accountsContainer').innerHTML = html;
+        }
+
+        // Copy vào clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Đã copy vào clipboard!');
+            }).catch(err => {
+                console.error('Lỗi copy:', err);
+            });
+        }
+
+        // Toggle xem/ẩn mật khẩu
+        function togglePassword(accountId) {
+            const pwd = document.getElementById(`pwd-${accountId}`);
+            const mask = document.getElementById(`pwd-mask-${accountId}`);
+
+            if (pwd.style.display === 'none') {
+                pwd.style.display = 'inline';
+                mask.style.display = 'none';
+            } else {
+                pwd.style.display = 'none';
+                mask.style.display = 'inline';
+            }
+        }
+
+        // Đặt lại mật khẩu
+        async function resetPassword(accountId) {
+            if (confirm('Bạn có chắc muốn đặt lại mật khẩu cho tài khoản này?')) {
+                try {
+                    const response = await fetch(`/api/auth/accounts/${accountId}/reset-password`, {
+                        method: 'PUT'
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        alert(`Mật khẩu mới: ${data.password}`);
+
+                        // Cập nhật lại danh sách
+                        loadAccounts();
+                    } else {
+                        alert('Lỗi khi đặt lại mật khẩu!');
+                    }
+                } catch (error) {
+                    console.error('Lỗi:', error);
+                    alert('Lỗi khi đặt lại mật khẩu!');
+                }
+            }
+        }
+
+        // Lọc theo vai trò
+        function filterByRole(role) {
+            currentFilter = role;
+
+            // Cập nhật tab active
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Lọc dữ liệu
+            if (role === 'all') {
+                displayAccounts(allAccounts);
+            } else {
+                const filtered = allAccounts.filter(acc => acc.role === role);
+                displayAccounts(filtered);
+            }
+        }
+
+        // Tìm kiếm
+        document.getElementById('searchInput').addEventListener('keyup', (e) => {
+            const query = e.target.value.toLowerCase();
+            let filtered = allAccounts;
+
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(acc => acc.role === currentFilter);
+            }
+
+            filtered = filtered.filter(acc =>
+                acc.username.toLowerCase().includes(query) ||
+                (staffMap[acc.id] && staffMap[acc.id].fullName.toLowerCase().includes(query))
+            );
+
+            displayAccounts(filtered);
+        });
+
+        // Load khi trang được load
+        window.addEventListener('load', loadAccounts);
+    </script>
+</body>
+</html>
+
