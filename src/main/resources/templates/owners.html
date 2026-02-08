@@ -195,6 +195,7 @@
         function openModal() {
             document.getElementById('modalTitle').textContent = 'Thêm Chủ Sở Hữu';
             document.getElementById('ownerForm').reset();
+            delete document.getElementById('ownerForm').dataset.editingId;
             document.getElementById('ownerModal').style.display = 'block';
         }
 
@@ -204,6 +205,7 @@
 
         function saveOwner(e) {
             e.preventDefault();
+            const editingId = document.getElementById('ownerForm').dataset.editingId;
             const owner = {
                 id: ownersData.length + 1,
                 hoTen: document.getElementById('hoTen').value,
@@ -211,13 +213,32 @@
                 email: document.getElementById('email').value,
                 diaChi: document.getElementById('diaChi').value
             };
-            ownersData.push(owner);
+            if (editingId) {
+                const index = ownersData.findIndex(o => o.id == editingId);
+                if (index !== -1) {
+                    ownersData[index] = { ...owner, id: parseInt(editingId) };
+                }
+                delete document.getElementById('ownerForm').dataset.editingId;
+            } else {
+                const newId = ownersData.length > 0 ? Math.max(...ownersData.map(o => o.id)) + 1 : 1;
+                const newOwner = { ...owner, id: newId };
+                ownersData.push(newOwner);
+            }
             renderTable();
             closeModal();
         }
 
         function editOwner(id) {
-            alert('Chức năng sửa sẽ được phát triển');
+            const owner = ownersData.find(o => o.id === id);
+            if (owner) {
+                document.getElementById('modalTitle').textContent = 'Sửa Chủ Sở Hữu';
+                document.getElementById('hoTen').value = owner.hoTen;
+                document.getElementById('soDienThoai').value = owner.soDienThoai;
+                document.getElementById('email').value = owner.email;
+                document.getElementById('diaChi').value = owner.diaChi;
+                document.getElementById('ownerForm').dataset.editingId = id;
+                document.getElementById('ownerModal').style.display = 'block';
+            }
         }
 
         function deleteOwner(id) {
@@ -232,7 +253,7 @@
 
             const filtered = ownersData.filter(o => {
                 return o.hoTen.toLowerCase().includes(searchText) ||
-                       o.email.toLowerCase().includes(searchText);
+                    o.email.toLowerCase().includes(searchText);
             });
 
             const tbody = document.getElementById('ownersTable');

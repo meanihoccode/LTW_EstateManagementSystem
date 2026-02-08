@@ -191,6 +191,7 @@
         function openModal() {
             document.getElementById('modalTitle').textContent = 'Thêm Nhân Viên';
             document.getElementById('staffForm').reset();
+            delete document.getElementById('staffForm').dataset.editingId;
             document.getElementById('staffModal').style.display = 'block';
         }
 
@@ -200,19 +201,44 @@
 
         function saveStaff(e) {
             e.preventDefault();
+            const editingId = document.getElementById('staffForm').dataset.editingId;
             const staff = {
                 id: staffData.length + 1,
                 hoTen: document.getElementById('hoTen').value,
                 soDienThoai: document.getElementById('soDienThoai').value,
                 vaiTro: document.getElementById('vaiTro').value
             };
-            staffData.push(staff);
+            if (editingId) {
+                const index = staffData.findIndex(s => s.id == editingId);
+                if (index !== -1) {
+                    staff.id = parseInt(editingId);
+                    staffData[index] = staff;
+                }
+                delete document.getElementById('staffForm').dataset.editingId;
+            } else {
+                const newId = staffData.length > 0 ? Math.max(...staffData.map(s => s.id)) + 1 : 1;
+                const newStaff = {
+                    id: newId,
+                    hoTen: staff.hoTen,
+                    soDienThoai: staff.soDienThoai,
+                    vaiTro: staff.vaiTro
+                };
+                staffData.push(newStaff);
+            }
             renderTable();
             closeModal();
         }
 
         function editStaff(id) {
-            alert('Chức năng sửa sẽ được phát triển');
+            const staff = staffData.find(s => s.id === id);
+            if (staff) {
+                document.getElementById('modalTitle').textContent = 'Sửa Nhân Viên';
+                document.getElementById('hoTen').value = staff.hoTen;
+                document.getElementById('soDienThoai').value = staff.soDienThoai;
+                document.getElementById('vaiTro').value = staff.vaiTro;
+                document.getElementById('staffForm').dataset.editingId = id;
+                document.getElementById('staffModal').style.display = 'block';
+            }
         }
 
         function deleteStaff(id) {
@@ -227,7 +253,7 @@
 
             const filtered = staffData.filter(s => {
                 return s.hoTen.toLowerCase().includes(searchText) ||
-                       s.vaiTro.toLowerCase().includes(searchText);
+                    s.vaiTro.toLowerCase().includes(searchText);
             });
 
             const tbody = document.getElementById('staffTable');
@@ -259,4 +285,6 @@
     </script>
 </body>
 </html>
+
+
 

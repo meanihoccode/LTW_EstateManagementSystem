@@ -55,11 +55,43 @@ body {
     font-weight: 800;
 }
 
-.nav a {
-    margin: 0 22px;
-    font-size: 15px;
+/* RESET LINK STYLE */
+.nav a, .nav button {
+    text-decoration: none;      /* bỏ gạch chân */
+    color: #222;                /* màu chữ giống button cũ */
     font-weight: 500;
+    font-size: 15px;
+    padding: 8px 20px;
+    border-radius: 8px;
+    transition: all 0.25s ease;
     cursor: pointer;
+}
+
+/* HOVER EFFECT */
+.nav a:hover, .nav button:hover {
+    background-color: #f2f2f2;
+    color: #000;
+}
+
+/* ACTIVE (khi đang ở trang đó) */
+.nav a.active, .nav button.active {
+    background-color: #000;
+    color: #fff;
+}
+
+/* Căn đều nav */
+.nav {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.btn-contact {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-weight: 500;
+    font-size: 15px;
 }
 
 .actions {
@@ -113,9 +145,11 @@ body {
 }
 
 .hero-right img {
-    width: 720px;
+    width: 100%;
+    max-width: 720px;
+    height: auto;
+    object-fit: cover;
     border-radius: 24px;
-    margin-top: 0;
 }
 
 /* ===== LOGIN MODAL ===== */
@@ -194,7 +228,7 @@ body {
     letter-spacing: 0.5px;
 }
 
-.form-group input {
+.form-group input, .form-group textarea {
     width: 100%;
     padding: 14px 16px;
     border: 1px solid #D4C4B0;
@@ -222,6 +256,22 @@ body {
     margin: 24px 0 32px;
     gap: 8px;
 }
+
+.form-group textarea {
+    min-height: 120px;
+    resize: none; /* hoặc none nếu không muốn kéo */
+}
+
+.form-group textarea::placeholder {
+    color: #A89880;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: #2B1A10;
+    box-shadow: 0 0 0 3px rgba(43, 26, 16, 0.1);
+}
+
 
 .form-remember input[type="checkbox"] {
     width: 18px;

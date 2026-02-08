@@ -164,7 +164,7 @@
                 {
                     id: 1,
                     hopDong: 'HĐ-001',
-                    ngayThanhToan: '25/01/2026',
+                    ngayThanhToan: '2026-01-25',
                     soTien: 1200,
                     phuongThuc: 'Chuyển khoản',
                     trangThai: 'Đã duyệt'
@@ -172,7 +172,7 @@
                 {
                     id: 2,
                     hopDong: 'HĐ-002',
-                    ngayThanhToan: '23/01/2026',
+                    ngayThanhToan: '2026-01-25',
                     soTien: 950,
                     phuongThuc: 'Chuyển khoản',
                     trangThai: 'Đã duyệt'
@@ -180,7 +180,7 @@
                 {
                     id: 3,
                     hopDong: 'HĐ-003',
-                    ngayThanhToan: '22/01/2026',
+                    ngayThanhToan: '2026-01-25',
                     soTien: 1500,
                     phuongThuc: 'Tiền mặt',
                     trangThai: 'Chờ duyệt'
@@ -245,6 +245,8 @@
         function openModal() {
             document.getElementById('modalTitle').textContent = 'Thêm Thanh Toán';
             document.getElementById('paymentForm').reset();
+
+            delete document.getElementById('paymentForm').dataset.editingId;
             document.getElementById('paymentModal').style.display = 'block';
         }
 
@@ -254,6 +256,8 @@
 
         function savePayment(e) {
             e.preventDefault();
+
+            const editingId = document.getElementById('paymentForm').dataset.editingId;
             const payment = {
                 id: paymentsData.length + 1,
                 hopDong: document.getElementById('hopDong').value,
@@ -262,13 +266,40 @@
                 phuongThuc: document.getElementById('phuongThuc').value,
                 trangThai: document.getElementById('trangThai').value
             };
-            paymentsData.push(payment);
+            if (editingId) {
+                const index = paymentsData.findIndex(p => p.id == editingId);
+                if (index !== -1) {
+                    paymentsData[index] = {
+                        id: parseInt(editingId),
+                        ...payment
+                    };
+                }
+                delete document.getElementById('paymentForm').dataset.editingId;
+            } else {
+                const newId = paymentsData.length > 0 ? Math.max(...paymentsData.map(p => p.id)) + 1 : 1;
+                const newPayment = {
+                    id: newId,
+                    ...payment
+                };
+                paymentsData.push(newPayment);
+            }
             renderTable();
             closeModal();
         }
 
         function editPayment(id) {
-            alert('Chức năng sửa sẽ được phát triển');
+            const payment = paymentsData.find(p => p.id === id);
+            if (!payment) return;
+
+            document.getElementById('hopDong').value = payment.hopDong;
+            document.getElementById('ngayThanhToan').value = payment.ngayThanhToan;
+            document.getElementById('soTien').value = payment.soTien;
+            document.getElementById('phuongThuc').value = payment.phuongThuc;
+            document.getElementById('trangThai').value = payment.trangThai;
+
+            document.getElementById('paymentForm').dataset.editingId = id;
+            document.getElementById('modalTitle').textContent = 'Sửa Thanh Toán';
+            document.getElementById('paymentModal').style.display = 'block';
         }
 
         function deletePayment(id) {
@@ -319,4 +350,6 @@
     </script>
 </body>
 </html>
+
+
 

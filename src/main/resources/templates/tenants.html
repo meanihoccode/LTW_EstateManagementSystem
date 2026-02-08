@@ -195,6 +195,8 @@
         function openModal() {
             document.getElementById('modalTitle').textContent = 'Thêm Khách Thuê';
             document.getElementById('tenantForm').reset();
+
+            delete document.getElementById('tenantForm').dataset.editingId;
             document.getElementById('tenantModal').style.display = 'block';
         }
 
@@ -204,6 +206,7 @@
 
         function saveTenant(e) {
             e.preventDefault();
+            const editingId = document.getElementById('tenantForm').dataset.editingId;
             const tenant = {
                 id: tenantsData.length + 1,
                 hoTen: document.getElementById('hoTen').value,
@@ -211,13 +214,39 @@
                 soDienThoai: document.getElementById('soDienThoai').value,
                 email: document.getElementById('email').value
             };
-            tenantsData.push(tenant);
+            if (editingId) {
+                const index = tenantsData.findIndex(t => t.id == editingId);
+                if (index !==-1) {
+                    tenantsData[index] = {
+                        id: parseInt(editingId),
+                        hoTen: tenant.hoTen,
+                        soCCCD: tenant.soCCCD,
+                        soDienThoai: tenant.soDienThoai,
+                        email: tenant.email
+                    };
+                }
+                delete document.getElementById('tenantForm').dataset.editingId;
+            } else {
+                const newId = tenantsData.length > 0 ? Math.max(...tenantsData.map(t => t.id)) + 1 : 1;
+                const newTenant = { ...tenant, id: newId };
+                tenantsData.push(newTenant);
+            }
             renderTable();
             closeModal();
         }
 
         function editTenant(id) {
-            alert('Chức năng sửa sẽ được phát triển');
+            const tenant = tenantsData.find(t => t.id === id);
+            if (!tenant) return;
+
+            document.getElementById('hoTen').value = tenant.hoTen;
+            document.getElementById('soCCCD').value = tenant.soCCCD;
+            document.getElementById('soDienThoai').value = tenant.soDienThoai;
+            document.getElementById('email').value = tenant.email;
+
+            document.getElementById('tenantForm').dataset.editingId = id;
+            document.getElementById('modalTitle').textContent = 'Sửa Khách Thuê';
+            document.getElementById('tenantModal').style.display = 'block';
         }
 
         function deleteTenant(id) {
@@ -232,7 +261,7 @@
 
             const filtered = tenantsData.filter(t => {
                 return t.hoTen.toLowerCase().includes(searchText) ||
-                       t.email.toLowerCase().includes(searchText);
+                    t.email.toLowerCase().includes(searchText);
             });
 
             const tbody = document.getElementById('tenantsTable');
