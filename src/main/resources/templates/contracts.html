@@ -157,8 +157,13 @@
     </div>
 
     <script>
+
         let contractsData = [];
 
+        // loadContracts()	Tạo dữ liệu hợp đồng mẫu
+        // loadProperties()	Đổ BĐS vào ô chọn
+        // loadTenants()	Đổ khách thuê vào ô chọn
+        // setupEventListeners()	Gắn sự kiện cho nút bấm
         document.addEventListener('DOMContentLoaded', function() {
             loadContracts();
             loadProperties();
@@ -221,6 +226,7 @@
             });
         }
 
+        // renderTable()	Hiển thị dữ liệu hợp đồng lên bảng
         function renderTable() {
             const tbody = document.getElementById('contractsTable');
             if (contractsData.length === 0) {
@@ -245,6 +251,7 @@
             `).join('');
         }
 
+        // getStatusClass()	Lấy lớp CSS tương ứng với trạng thái
         function getStatusClass(status) {
             switch(status) {
                 case 'Hiệu lực': return 'active';
@@ -253,7 +260,7 @@
                 default: return '';
             }
         }
-
+        // setupEventListeners()	Gắn sự kiện cho nút bấm
         function setupEventListeners() {
             document.getElementById('addContractBtn').addEventListener('click', openModal);
             document.getElementById('closeModalBtn').addEventListener('click', closeModal);
@@ -263,19 +270,22 @@
             document.getElementById('searchInput').addEventListener('keyup', filterTable);
             document.getElementById('filterStatus').addEventListener('change', filterTable);
         }
-
+        // openModal()	Mở modal thêm hợp đồng
         function openModal() {
             document.getElementById('modalTitle').textContent = 'Thêm Hợp Đồng';
             document.getElementById('contractForm').reset();
+            delete document.getElementById('contractForm').dataset.editingId;
             document.getElementById('contractModal').style.display = 'block';
         }
-
+        // closeModal()	Đóng modal
         function closeModal() {
             document.getElementById('contractModal').style.display = 'none';
         }
-
+        // saveContract()	Lưu hợp đồng mới
         function saveContract(e) {
             e.preventDefault();
+
+            const editingId = document.getElementById('contractForm').dataset.editingId;
             const contract = {
                 id: contractsData.length + 1,
                 batDongSan: document.getElementById('batDongSan').value,
@@ -285,15 +295,42 @@
                 tienCoc: document.getElementById('tienCoc').value,
                 trangThai: document.getElementById('trangThai').value
             };
-            contractsData.push(contract);
+
+            if (editingId) {
+                const index = contractsData.findIndex(c => c.id == editingId);
+                if (index !== -1) {
+                    contractsData[index] = { id: parseInt(editingId), ...contract };
+                    renderTable();
+                    closeModal();
+                }
+                delete document.getElementById('contractForm').dataset.editingId;
+            } else {
+                const newId = contractsData.length > 0 ? Math.max(...contractsData.map(c => c.id)) + 1 : 1;
+                const newContract = {
+                    id: newId, ...contract
+                };
+                contractsData.push(newContract);
+            }
             renderTable();
             closeModal();
         }
-
+        // editContract()	Sửa hợp đồng (chức năng chưa phát triển)
         function editContract(id) {
-            alert('Chức năng sửa sẽ được phát triển');
-        }
+            const contract = contractsData.find(c => c.id === id);
+            if (!contract) return;
 
+            document.getElementById('batDongSan').value = contract.batDongSan;
+            document.getElementById('khachThue').value = contract.khachThue;
+            document.getElementById('ngayBatDau').value = contract.ngayBatDau;
+            document.getElementById('ngayKetThuc').value = contract.ngayKetThuc;
+            document.getElementById('tienCoc').value = contract.tienCoc;
+            document.getElementById('trangThai').value = contract.trangThai;
+
+            document.getElementById('contractForm').dataset.editingId = id;
+            document.getElementById('modalTitle').textContent = 'Sửa Hợp Đồng';
+            document.getElementById('contractModal').style.display = 'block';
+        }
+        // deleteContract()	Xóa hợp đồng
         function deleteContract(id) {
             if (confirm('Bạn có chắc muốn xóa?')) {
                 contractsData = contractsData.filter(c => c.id !== id);
@@ -301,13 +338,14 @@
             }
         }
 
+        // tìm kiếm & lọc trạng thái
         function filterTable() {
             const searchText = document.getElementById('searchInput').value.toLowerCase();
             const statusFilter = document.getElementById('filterStatus').value;
 
             const filtered = contractsData.filter(c => {
                 const matchesSearch = c.batDongSan.toLowerCase().includes(searchText) ||
-                                    c.khachThue.toLowerCase().includes(searchText);
+                    c.khachThue.toLowerCase().includes(searchText);
                 const matchesStatus = statusFilter === '' || c.trangThai === statusFilter;
                 return matchesSearch && matchesStatus;
             });
@@ -334,7 +372,7 @@
                 </tr>
             `).join('');
         }
-
+        // Đóng modal khi click ngoài nội dung
         window.addEventListener('click', function(event) {
             const modal = document.getElementById('contractModal');
             if (event.target === modal) {

@@ -48,10 +48,21 @@ public class PaymentService {
         Payment existingPayment = paymentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Payment not found with id: " + id));
 
-        existingPayment.setAmount(payment.getAmount());
-        existingPayment.setPaymentDate(payment.getPaymentDate());
-        existingPayment.setStatus(payment.getStatus());
-        existingPayment.setMethod(payment.getMethod());
+        if (payment.getContract() != null) {
+            existingPayment.setContract(payment.getContract());
+        }
+        if (payment.getAmount() != null) {
+            existingPayment.setAmount(payment.getAmount());
+        }
+        if (payment.getPaymentDate() != null) {
+            existingPayment.setPaymentDate(payment.getPaymentDate());
+        }
+        if (payment.getStatus() != null) {
+            existingPayment.setStatus(payment.getStatus());
+        }
+        if (payment.getMethod() != null) {
+            existingPayment.setMethod(payment.getMethod());
+        }
         return paymentRepository.save(existingPayment);
     }
 }

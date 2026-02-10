@@ -59,12 +59,11 @@ public class AccountService {
         User user = userRepository.findById(staffId)
                 .orElseThrow(() -> new RuntimeException("Staff not found"));
 
-        if (user.getAccountId() == null) {
+        if (user.getAccount() == null) {
             throw new RuntimeException("Staff has no account");
         }
 
-        return accountRepository.findById(user.getAccountId())
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+        return user.getAccount();
     }
 
     // Admin đặt lại mật khẩu

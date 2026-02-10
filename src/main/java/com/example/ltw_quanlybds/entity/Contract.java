@@ -20,11 +20,15 @@ public class Contract {
     @Column(name = "hop_dong_id")
     private Integer id;
 
-    @Column(name = "bat_dong_san_id")
-    private Integer propertyId;
+    // ✅ @ManyToOne relationship: Nhiều hợp đồng liên quan đến 1 bất động sản
+    @ManyToOne
+    @JoinColumn(name = "bat_dong_san_id")
+    private Property property;
 
-    @Column(name = "khach_thue_id")
-    private Integer tenantId;
+    // ✅ @ManyToOne relationship: Nhiều hợp đồng liên quan đến 1 khách thuê
+    @ManyToOne
+    @JoinColumn(name = "khach_thue_id")
+    private Tenant tenant;
 
     @Column(name = "ngay_bat_dau")
     private LocalDate startDate;
