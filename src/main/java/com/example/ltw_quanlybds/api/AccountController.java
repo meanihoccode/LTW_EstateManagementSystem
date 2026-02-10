@@ -3,6 +3,7 @@ package com.example.ltw_quanlybds.api;
 import com.example.ltw_quanlybds.dto.LoginRequest;
 import com.example.ltw_quanlybds.entity.Account;
 import com.example.ltw_quanlybds.service.AccountService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ public class AccountController {
     private AccountService accountService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
         if (accountService.validatePassword(loginRequest.getUsername(), loginRequest.getPassword())) {
             Account account = accountService.findByUsername(loginRequest.getUsername());
             return ResponseEntity.ok(account);

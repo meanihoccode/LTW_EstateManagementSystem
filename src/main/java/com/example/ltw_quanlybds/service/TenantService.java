@@ -1,6 +1,7 @@
 package com.example.ltw_quanlybds.service;
 
 import com.example.ltw_quanlybds.entity.Tenant;
+import com.example.ltw_quanlybds.exception.ResourceNotFoundException;
 import com.example.ltw_quanlybds.repository.TenantRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ public class TenantService {
     }
     public Tenant getById(Integer id) {
         return tenantRepository.findById(id).orElseThrow(() ->
-                new RuntimeException("Tenant not found"));
+                new ResourceNotFoundException("Tenant not found with id: " + id));
     }
     public Tenant createTenant(Tenant tenant) {
         return tenantRepository.save(tenant);

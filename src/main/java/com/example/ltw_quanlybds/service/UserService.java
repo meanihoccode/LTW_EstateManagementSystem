@@ -1,18 +1,20 @@
 package com.example.ltw_quanlybds.service;
 
+import com.example.ltw_quanlybds.dto.UserResponse;
 import com.example.ltw_quanlybds.entity.Account;
 import com.example.ltw_quanlybds.entity.User;
+import com.example.ltw_quanlybds.exception.ResourceNotFoundException;
 import com.example.ltw_quanlybds.repository.AccountRepository;
 import com.example.ltw_quanlybds.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
 import java.util.List;
 
 @Service
 @Transactional
-
 public class UserService {
     @Autowired
     private UserRepository userRepository;
@@ -20,12 +22,14 @@ public class UserService {
     @Autowired
     private AccountRepository accountRepository;
 
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
     public User getUserById(Integer id) {
         return userRepository.findById(id).orElseThrow(() ->
-                new RuntimeException("User not found"));
+                new ResourceNotFoundException("User not found with id: " + id));
     }
     public User createUser(User user) {
         // Tự động tạo tài khoản trước
@@ -35,7 +39,7 @@ public class UserService {
 
         Account account = Account.builder()
                 .username(username)
-                .password(password)
+                .password(passwordEncoder.encode(password))
                 .role(role)
                 .build();
 
@@ -69,5 +73,18 @@ public class UserService {
     }
     public void deleteUser(Integer id) {
         userRepository.deleteById(id);
+    }
+
+    // ✅ Convert User entity thành UserResponse (không có password)
+    public UserResponse convertToResponse(User user) {
+        UserResponse response = new UserResponse();
+        response.setId(user.getId());
+        response.setFullName(user.getFullName());
+        response.setPhone(user.getPhone());
+        response.setRole(user.getRole());
+        if (user.getAccount() != null) {
+            response.setUsername(user.getAccount().getUsername());
+        }
+        return response;
     }
 }

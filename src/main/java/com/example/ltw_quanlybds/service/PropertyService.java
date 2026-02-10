@@ -1,6 +1,7 @@
 package com.example.ltw_quanlybds.service;
 
 import com.example.ltw_quanlybds.entity.Property;
+import com.example.ltw_quanlybds.exception.ResourceNotFoundException;
 import com.example.ltw_quanlybds.repository.PropertyRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ public class PropertyService {
 
     public Property getPropertyById(Integer id) {
         return propertyRepository.findById(id).orElseThrow(()
-                -> new RuntimeException("Property not found"));
+                -> new ResourceNotFoundException("Property not found with id: " + id));
     }
 
     public List<Property> getPropertiesByStatus(String status) {

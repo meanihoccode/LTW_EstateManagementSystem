@@ -1,6 +1,7 @@
 package com.example.ltw_quanlybds.service;
 
 import com.example.ltw_quanlybds.entity.Owner;
+import com.example.ltw_quanlybds.exception.ResourceNotFoundException;
 import com.example.ltw_quanlybds.repository.OwnerRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ public class OwnerService {
 
     public Owner getOwnerById(Integer id) {
         return ownerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Owner not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Owner not found with id: " + id));
     }
 
     public Owner createOwner(Owner owner) {

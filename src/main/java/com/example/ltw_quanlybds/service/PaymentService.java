@@ -1,6 +1,7 @@
 package com.example.ltw_quanlybds.service;
 
 import com.example.ltw_quanlybds.entity.Payment;
+import com.example.ltw_quanlybds.exception.ResourceNotFoundException;
 import com.example.ltw_quanlybds.repository.PaymentRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class PaymentService {
     public Payment getPaymentById(Integer id)
     {
         return paymentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Payment not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found with id: " + id));
     }
 
     public Payment createPayment(Payment payment) {
