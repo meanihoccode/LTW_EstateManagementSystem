@@ -1,9 +1,10 @@
+
+
 package com.example.ltw_quanlybds.service;
 
 import com.example.ltw_quanlybds.entity.Contract;
 import com.example.ltw_quanlybds.entity.Owner;
 import com.example.ltw_quanlybds.repository.ContractRepository;
-import com.example.ltw_quanlybds.repository.OwnerRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

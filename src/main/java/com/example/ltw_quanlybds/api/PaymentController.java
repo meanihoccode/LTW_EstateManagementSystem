@@ -2,6 +2,7 @@ package com.example.ltw_quanlybds.api;
 
 import com.example.ltw_quanlybds.entity.Payment;
 import com.example.ltw_quanlybds.service.PaymentService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,19 +28,19 @@ public class PaymentController {
     }
 
     @PostMapping
-    public ResponseEntity<Payment> createPayment(@RequestBody Payment payment) {
+    public ResponseEntity<Payment> createPayment(@Valid @RequestBody Payment payment) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(paymentService.createPayment(payment));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Payment> updatePayment(@RequestBody Payment payment, @PathVariable Integer id) {
+    public ResponseEntity<Payment> updatePayment(@Valid @RequestBody Payment payment, @PathVariable Integer id) {
         Payment updatedPayment = paymentService.updatePayment(id, payment);
         return ResponseEntity.ok(updatedPayment);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Payment> deletePayment(@PathVariable Integer id) {
+    public ResponseEntity<Void> deletePayment(@PathVariable Integer id) {
         paymentService.deletePaymentById(id);
         return ResponseEntity.noContent().build();
     }

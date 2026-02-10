@@ -2,6 +2,7 @@ package com.example.ltw_quanlybds.api;
 
 import com.example.ltw_quanlybds.entity.Property;
 import com.example.ltw_quanlybds.service.PropertyService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,14 +33,14 @@ public class PropertyController {
     }
 
     @PostMapping
-    public ResponseEntity<Property> createProperty(@RequestBody Property property) {
+    public ResponseEntity<Property> createProperty(@Valid @RequestBody Property property) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(propertyService.createProperty(property));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Property> updateProperty(@PathVariable Integer id,
-                                                   @RequestBody Property propertyDetails) {
+                                                   @Valid @RequestBody Property propertyDetails) {
         return ResponseEntity.ok(propertyService.updateProperty(id, propertyDetails));
     }
 

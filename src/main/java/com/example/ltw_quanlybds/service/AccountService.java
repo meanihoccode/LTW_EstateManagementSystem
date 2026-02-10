@@ -2,10 +2,12 @@ package com.example.ltw_quanlybds.service;
 
 import com.example.ltw_quanlybds.entity.Account;
 import com.example.ltw_quanlybds.entity.User;
+import com.example.ltw_quanlybds.exception.ResourceNotFoundException;
 import com.example.ltw_quanlybds.repository.AccountRepository;
 import com.example.ltw_quanlybds.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -18,6 +20,8 @@ public class AccountService {
     @Autowired
     private UserRepository userRepository;
 
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     public Account findByUsername(String username) {
         return accountRepository.findByUsername(username);
     }
@@ -27,11 +31,11 @@ public class AccountService {
         if (account == null) {
             return false;
         }
-        // TODO: Trong production, cần dùng BCrypt để so sánh password
-        return account.getPassword().equals(password);
+        return passwordEncoder.matches(password,account.getPassword());
     }
 
     public Account createAccount(Account account) {
+        account.setPassword(passwordEncoder.encode(account.getPassword()));
         return accountRepository.save(account);
     }
 
@@ -45,7 +49,11 @@ public class AccountService {
 
     // Admin xem danh sách tất cả tài khoản
     public List<Account> getAllAccounts() {
-        return accountRepository.findAll();
+        List<Account> accounts = accountRepository.findAll();
+//        for (Account account : accounts) {
+//            account.setPassword(passwordEncoder.decode(account.getPassword()));
+//        }
+        return accounts;
     }
 
     // Admin xem chi tiết một tài khoản
@@ -72,7 +80,7 @@ public class AccountService {
 
         // Tạo mật khẩu ngẫu nhiên mới
         String newPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
-        account.setPassword(newPassword);
+        account.setPassword(passwordEncoder.encode(newPassword));
 
         return accountRepository.save(account);
     }
