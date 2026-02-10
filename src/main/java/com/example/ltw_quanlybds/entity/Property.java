@@ -37,10 +37,14 @@ public class Property {
     @Column(name = "trang_thai")
     private String status;
 
-    @Column(name = "chu_so_huu_id")
-    private Integer ownerId;
+    // ✅ @ManyToOne relationship: Nhiều bất động sản thuộc 1 chủ sở hữu
+    @ManyToOne
+    @JoinColumn(name = "chu_so_huu_id")
+    private Owner owner;
 
-    @Column(name = "nhan_vien_id")
-    private Integer staffId;
+    // ✅ @ManyToOne relationship: Nhiều bất động sản được quản lý bởi 1 nhân viên
+    @ManyToOne
+    @JoinColumn(name = "nhan_vien_id")
+    private User staff;
 }
 

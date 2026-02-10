@@ -31,8 +31,7 @@ public class ContractController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Contract> updateContract(@PathVariable Integer id, @RequestBody Contract contract) {
-        contract.setId(id);
-        Contract updatedContract = contractService.updateContract(contract);
+        Contract updatedContract = contractService.updateContract(id, contract);
         return ResponseEntity.ok(updatedContract);
     }
 

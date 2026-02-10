@@ -28,7 +28,22 @@ public class OwnerService {
         return ownerRepository.save(owner);
     }
 
-    public Owner updateOwner(Owner owner) {
+    public Owner updateOwner(Integer id, Owner ownerDetails) {
+        Owner owner = getOwnerById(id);
+
+        if (ownerDetails.getFullName() != null) {
+            owner.setFullName(ownerDetails.getFullName());
+        }
+        if (ownerDetails.getPhone() != null) {
+            owner.setPhone(ownerDetails.getPhone());
+        }
+        if (ownerDetails.getEmail() != null) {
+            owner.setEmail(ownerDetails.getEmail());
+        }
+        if (ownerDetails.getAddress() != null) {
+            owner.setAddress(ownerDetails.getAddress());
+        }
+
         return ownerRepository.save(owner);
     }
 

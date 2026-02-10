@@ -54,8 +54,11 @@ public class PropertyService {
         if (propertyDetails.getStatus() != null) {
             property.setStatus(propertyDetails.getStatus());
         }
-        if (propertyDetails.getOwnerId() != null) {
-            property.setOwnerId(propertyDetails.getOwnerId());
+        if (propertyDetails.getOwner() != null) {
+            property.setOwner(propertyDetails.getOwner());
+        }
+        if (propertyDetails.getStaff() != null) {
+            property.setStaff(propertyDetails.getStaff());
         }
 
         return propertyRepository.save(property);

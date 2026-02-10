@@ -27,7 +27,9 @@ public class User {
     @Column(name = "vai_tro")
     private String role;
 
-    @Column(name = "tai_khoan_id")
-    private Integer accountId;
+    // ✅ @OneToOne relationship: 1 nhân viên có 1 tài khoản duy nhất
+    @OneToOne
+    @JoinColumn(name = "tai_khoan_id")
+    private Account account;
 }
 

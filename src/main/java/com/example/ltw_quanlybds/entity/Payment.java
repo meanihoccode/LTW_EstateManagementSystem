@@ -20,8 +20,10 @@ public class Payment {
     @Column(name = "thanh_toan_id")
     private Integer id;
 
-    @Column(name = "hop_dong_id")
-    private Integer contractId;
+    // ✅ @ManyToOne relationship: Nhiều thanh toán liên quan đến 1 hợp đồng
+    @ManyToOne
+    @JoinColumn(name = "hop_dong_id")
+    private Contract contract;
 
     @Column(name = "ngay_thanh_toan")
     private LocalDate paymentDate;

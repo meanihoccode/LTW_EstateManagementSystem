@@ -32,8 +32,7 @@ public class OwnerController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Owner> updateOwner(@PathVariable Integer id, @RequestBody Owner ownerDetails) {
-        ownerDetails.setId(id);
-        return ResponseEntity.ok(ownerService.updateOwner(ownerDetails));
+        return ResponseEntity.ok(ownerService.updateOwner(id, ownerDetails));
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOwner(@PathVariable Integer id) {

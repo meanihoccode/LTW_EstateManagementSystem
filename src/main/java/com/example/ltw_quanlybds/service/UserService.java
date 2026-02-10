@@ -41,8 +41,8 @@ public class UserService {
 
         Account savedAccount = accountRepository.save(account);
 
-        // Gán account ID cho user
-        user.setAccountId(savedAccount.getId());
+        // Gán account object cho user
+        user.setAccount(savedAccount);
 
         // Tạo nhân viên
         User savedUser = userRepository.save(user);

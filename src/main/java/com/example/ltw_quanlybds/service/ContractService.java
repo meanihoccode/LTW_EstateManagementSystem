@@ -33,7 +33,28 @@ public class ContractService {
         return contractRepository.save(contract);
     }
 
-    public Contract updateContract(Contract contract) {
+    public Contract updateContract(Integer id, Contract contractDetails) {
+        Contract contract = getContractById(id);
+
+        if (contractDetails.getProperty() != null) {
+            contract.setProperty(contractDetails.getProperty());
+        }
+        if (contractDetails.getTenant() != null) {
+            contract.setTenant(contractDetails.getTenant());
+        }
+        if (contractDetails.getStartDate() != null) {
+            contract.setStartDate(contractDetails.getStartDate());
+        }
+        if (contractDetails.getEndDate() != null) {
+            contract.setEndDate(contractDetails.getEndDate());
+        }
+        if (contractDetails.getDeposit() != null) {
+            contract.setDeposit(contractDetails.getDeposit());
+        }
+        if (contractDetails.getStatus() != null) {
+            contract.setStatus(contractDetails.getStatus());
+        }
+
         return contractRepository.save(contract);
     }
 
