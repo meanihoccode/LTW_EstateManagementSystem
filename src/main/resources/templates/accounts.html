@@ -347,7 +347,8 @@
 
                     if (response.ok) {
                         const data = await response.json();
-                        alert(`Mật khẩu mới: ${data.password}`);
+                        alert(`Tài khoản: ${data.username}\nMật khẩu tạm: ${data.temporaryPassword}\n\nHãy gửi cho nhân viên và bắt họ đổi mật khẩu lần đầu`);
+
 
                         // Cập nhật lại danh sách
                         loadAccounts();

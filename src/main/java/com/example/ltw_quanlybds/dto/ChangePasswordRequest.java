@@ -7,10 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-
-public class PasswordResetResponse {
-    public Integer accountId;
-    public String temporaryPassword;
-    public String username;
-    public String message;
+public class ChangePasswordRequest {
+    private String oldPassword;
+    private String newPassword;
 }
+
