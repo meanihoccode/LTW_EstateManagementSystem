@@ -31,5 +31,10 @@ public class Account {
     @NotBlank(message = "Quyền hạn không được để trống")
     @Column(name = "quyen_han")
     private String role;
+
+    @Column(name = "lan_dau_dang_nhap")
+    private Boolean firstLogin = true;
 }
+
+
 
