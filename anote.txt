@@ -4,3 +4,4 @@ fix xem mk
 fix doi mk
 hien thi nguoi dung
 trang accounts
+ cmd /c "cd /d D:\LTW_QuanLyBDS\LTW_QuanLyBDS && gradlew bootRun"

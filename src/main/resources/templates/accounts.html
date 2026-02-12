@@ -206,9 +206,9 @@
 
                 <!-- Filter Tabs -->
                 <div class="filter-tabs">
-                    <button class="tab-btn active" onclick="filterByRole('all')">Tất cả</button>
-                    <button class="tab-btn" onclick="filterByRole('Admin')">Admin</button>
-                    <button class="tab-btn" onclick="filterByRole('NhanVien')">Nhân viên</button>
+                    <button class="tab-btn active" onclick="filterByRole('all',this)">Tất cả</button>
+                    <button class="tab-btn" onclick="filterByRole('Admin',this)">Admin</button>
+                    <button class="tab-btn" onclick="filterByRole('NhanVien',this)">Nhân viên</button>
                 </div>
 
                 <!-- Accounts Section -->
@@ -223,110 +223,124 @@
 
     <script>
         let allAccounts = [];
-        let staffMap = {};
         let currentFilter = 'all';
 
-        // Load danh sách tài khoản
         async function loadAccounts() {
-            try {
-                const response = await fetch('/api/auth/accounts');
-                const data = await response.json();
-                allAccounts = data;
-
-                // Load thông tin nhân viên
-                await loadStaffInfo();
-
-                displayAccounts(allAccounts);
-            } catch (error) {
-                console.error('Lỗi:', error);
-                document.getElementById('accountsContainer').innerHTML =
-                    '<div style="color: red; padding: 20px;">Lỗi khi tải dữ liệu!</div>';
-            }
-        }
-
-        // Load thông tin nhân viên
-        async function loadStaffInfo() {
             try {
                 const response = await fetch('/api/staffs');
                 const data = await response.json();
-                data.forEach(staff => {
-                    staffMap[staff.accountId] = staff;
-                });
+
+                // chỉ lấy staff có account
+                allAccounts = data.filter(staff => staff.account !== null);
+
+                applyFilters();
+
             } catch (error) {
-                console.error('Lỗi tải nhân viên:', error);
+                console.error('Lỗi:', error);
+                document.getElementById('accountsContainer').innerHTML =
+                    '<div style="color:red;padding:20px;">Lỗi khi tải dữ liệu!</div>';
             }
         }
 
-        // Hiển thị danh sách tài khoản
-        function displayAccounts(accounts) {
+        function displayAccounts(staffList) {
             let html = '';
 
-            if (accounts.length === 0) {
-                html = '<div style="text-align: center; color: #999; padding: 40px;">Không có tài khoản nào</div>';
+            if (staffList.length === 0) {
+                html = '<div style="text-align:center;color:#999;padding:40px;">Không có tài khoản nào</div>';
             } else {
-                accounts.forEach(account => {
-                    const staff = staffMap[account.id];
-                    const staffName = staff ? staff.fullName : 'N/A';
-                    const staffPhone = staff ? staff.phone : 'N/A';
+                staffList.forEach(staff => {
+                    const acc = staff.account;
 
                     html += `
-                        <div class="account-card">
-                            <div class="staff-info">
-                                <strong>👤 ${staffName}</strong> | 📞 ${staffPhone}
-                            </div>
-                            <div class="account-info">
-                                <div class="info-item">
-                                    <span class="info-label">Tên Tài Khoản</span>
-                                    <span class="info-value">${account.username}</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Mật Khẩu</span>
-                                    <span class="info-value">
-                                        <span id="pwd-${account.id}" style="display: none;">${account.password}</span>
-                                        <span id="pwd-mask-${account.id}">••••••••</span>
-                                    </span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Quyền Hạn</span>
-                                    <span class="info-value">${account.role}</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">ID Tài Khoản</span>
-                                    <span class="info-value">#${account.id}</span>
-                                </div>
-                            </div>
-                            <div class="account-actions">
-                                <button class="btn-copy" onclick="copyToClipboard('${account.username}')">
-                                    📋 Copy Username
-                                </button>
-                                <button class="btn-copy" onclick="togglePassword(${account.id})">
-                                    👁️ Xem MK
-                                </button>
-                                <button class="btn-reset-pwd" onclick="resetPassword(${account.id})">
-                                    🔄 Đặt Lại MK
-                                </button>
-                            </div>
+                <div class="account-card">
+                    <div class="staff-info">
+                        <strong>👤 ${staff.fullName}</strong> | 📞 ${staff.phone}
+                    </div>
+
+                    <div class="account-info">
+                        <div class="info-item">
+                            <span class="info-label">Tên Tài Khoản</span>
+                            <span class="info-value">${acc.username}</span>
                         </div>
-                    `;
+
+
+                        <div class="info-item">
+                            <span class="info-label">Quyền Hạn</span>
+                            <span class="info-value">${acc.role}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">ID</span>
+                            <span class="info-value">#${acc.id}</span>
+                        </div>
+                    </div>
+
+                    <div class="account-actions">
+                        <button class="btn-copy"
+                            onclick="copyToClipboard('${acc.username}')">
+                            📋 Copy Username
+                        </button>
+
+                        <button class="btn-reset-pwd"
+                            onclick="resetPassword(${acc.id})">
+                            🔄 Đặt Lại MK
+                        </button>
+                    </div>
+                </div>
+            `;
                 });
             }
 
             document.getElementById('accountsContainer').innerHTML = html;
         }
 
-        // Copy vào clipboard
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Đã copy vào clipboard!');
-            }).catch(err => {
-                console.error('Lỗi copy:', err);
-            });
+        /* ================= FILTER ================= */
+
+        function filterByRole(role, btn) {
+            currentFilter = role;
+
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            applyFilters();
         }
 
-        // Toggle xem/ẩn mật khẩu
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = allAccounts;
+
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(staff =>
+                    staff.account.role === currentFilter
+                );
+            }
+
+            if (query) {
+                filtered = filtered.filter(staff =>
+                    staff.account.username.toLowerCase().includes(query) ||
+                    staff.fullName.toLowerCase().includes(query)
+                );
+            }
+
+            displayAccounts(filtered);
+        }
+
+        /* ================= SEARCH ================= */
+
+        document.getElementById('searchInput').addEventListener('keyup', applyFilters);
+
+        /* ================= BUTTON FUNCTIONS ================= */
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => alert('Đã copy username!'))
+                .catch(err => console.error(err));
+        }
+
         function togglePassword(accountId) {
             const pwd = document.getElementById(`pwd-${accountId}`);
-            const mask = document.getElementById(`pwd-mask-${accountId}`);
+            const mask = document.getElementById(`mask-${accountId}`);
 
             if (pwd.style.display === 'none') {
                 pwd.style.display = 'inline';
@@ -337,69 +351,36 @@
             }
         }
 
-        // Đặt lại mật khẩu
         async function resetPassword(accountId) {
-            if (confirm('Bạn có chắc muốn đặt lại mật khẩu cho tài khoản này?')) {
-                try {
-                    const response = await fetch(`/api/auth/accounts/${accountId}/reset-password`, {
-                        method: 'PUT'
-                    });
+            if (!confirm('Bạn có chắc muốn đặt lại mật khẩu?')) return;
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        alert(`Tài khoản: ${data.username}\nMật khẩu tạm: ${data.temporaryPassword}\n\nHãy gửi cho nhân viên và bắt họ đổi mật khẩu lần đầu`);
+            try {
+                const response = await fetch(`/api/auth/accounts/${accountId}/reset-password`, {
+                    method: 'PUT'
+                });
 
+                if (response.ok) {
+                    const data = await response.json();
 
-                        // Cập nhật lại danh sách
-                        loadAccounts();
-                    } else {
-                        alert('Lỗi khi đặt lại mật khẩu!');
-                    }
-                } catch (error) {
-                    console.error('Lỗi:', error);
-                    alert('Lỗi khi đặt lại mật khẩu!');
+                    alert(
+                        `Username: ${data.username}
+Mật khẩu tạm: ${data.temporaryPassword}
+Hãy nhắc nhân viên đổi mật khẩu sau khi đăng nhập lần đầu!`
+                    );
+
+                    loadAccounts();
+                } else {
+                    alert('Lỗi khi reset mật khẩu!');
                 }
+
+            } catch (error) {
+                console.error(error);
+                alert('Lỗi khi reset mật khẩu!');
             }
         }
 
-        // Lọc theo vai trò
-        function filterByRole(role) {
-            currentFilter = role;
-
-            // Cập nhật tab active
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-
-            // Lọc dữ liệu
-            if (role === 'all') {
-                displayAccounts(allAccounts);
-            } else {
-                const filtered = allAccounts.filter(acc => acc.role === role);
-                displayAccounts(filtered);
-            }
-        }
-
-        // Tìm kiếm
-        document.getElementById('searchInput').addEventListener('keyup', (e) => {
-            const query = e.target.value.toLowerCase();
-            let filtered = allAccounts;
-
-            if (currentFilter !== 'all') {
-                filtered = filtered.filter(acc => acc.role === currentFilter);
-            }
-
-            filtered = filtered.filter(acc =>
-                acc.username.toLowerCase().includes(query) ||
-                (staffMap[acc.id] && staffMap[acc.id].fullName.toLowerCase().includes(query))
-            );
-
-            displayAccounts(filtered);
-        });
-
-        // Load khi trang được load
         window.addEventListener('load', loadAccounts);
+
     </script>
 </body>
 </html>

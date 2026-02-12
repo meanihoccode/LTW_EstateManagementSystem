@@ -4,7 +4,9 @@ import com.example.ltw_quanlybds.dto.LoginRequest;
 import com.example.ltw_quanlybds.dto.LoginResponse;
 import com.example.ltw_quanlybds.dto.ChangePasswordRequest;
 import com.example.ltw_quanlybds.entity.Account;
+import com.example.ltw_quanlybds.entity.User;
 import com.example.ltw_quanlybds.service.AccountService;
+import com.example.ltw_quanlybds.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +20,8 @@ import java.util.List;
 public class AccountController {
     @Autowired
     private AccountService accountService;
+    @Autowired
+    private UserService userService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
@@ -49,8 +53,11 @@ public class AccountController {
 
     // Admin xem danh sách tất cả tài khoản
     @GetMapping("/accounts")
-    public ResponseEntity<List<Account>> getAllAccounts() {
-        return ResponseEntity.ok(accountService.getAllAccounts());
+    public ResponseEntity<?> getAllAccounts() {
+        // Lấy tất cả User
+        List<User> staffs = userService.getAllUsers();
+        // Khi trả về, User sẽ kèm Account
+        return ResponseEntity.ok(staffs);
     }
 
     // Admin xem chi tiết một tài khoản theo ID
@@ -77,6 +84,12 @@ public class AccountController {
     public ResponseEntity<?> changePassword(@PathVariable Integer id, @RequestBody ChangePasswordRequest request) {
         Account response = accountService.changePassword(id, request.getOldPassword(), request.getNewPassword());
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/accounts/{id}")
+    public ResponseEntity<Void> deleteAccount(@PathVariable Integer id) {
+        accountService.deleteAccount(id);
+        return ResponseEntity.noContent().build();
     }
 }
 
