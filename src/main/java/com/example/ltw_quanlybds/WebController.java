@@ -57,4 +57,9 @@ public class WebController {
         return "redirect:/dashboard";
     }
 
+    @GetMapping("/change-password")
+    public String changePassword() {
+        return "change-password";
+    }
+
 }

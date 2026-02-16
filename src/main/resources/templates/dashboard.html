@@ -8,6 +8,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <script>
+        // Kiểm tra user đã đăng nhập chưa
+        checkAuthStatus();
+
+        // Lấy thông tin user
+        const username = localStorage.getItem('username');
+        const role = localStorage.getItem('userRole');
+
+        console.log('Logged in as:', username, role);
+    </script>
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -59,7 +69,7 @@
                 <h1>Dashboard</h1>
                 <div class="user-section">
                     <span class="user">👤 Manager</span>
-                    <a href="/" class="btn-logout">Đăng xuất</a>
+                    <a href="/" onclick="handleLogout()" class="btn-logout">Đăng xuất</a>
                 </div>
             </div>
 

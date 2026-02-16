@@ -54,10 +54,10 @@
         <span class="close" id="closeLogin">&times;</span>
         <h2>Welcome Back</h2>
         <p class="modal-subtitle">Sign in to your account</p>
-        <form action="/login" method="post">
+        <form onsubmit="handleLogin(event)">
             <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" placeholder="your@email.com" required>
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
@@ -67,6 +67,7 @@
                 <input type="checkbox" id="remember" name="remember">
                 <label for="remember" class="remember-label">Remember me</label>
             </div>
+            <div id="loginError" style="color: red; margin-top: 10px; display: none;"></div>
             <button type="submit" class="btn-submit">Sign In</button>
         </form>
     </div>
@@ -145,6 +146,158 @@
         contactModal.style.display = "none";
         overlay.style.display = "none";
     };
+
+    /**
+     * Hàm handleLogin: Xử lý đăng nhập
+     *
+     * Quá trình:
+     * 1. Ngăn form submit mặc định
+     * 2. Lấy username + password từ input
+     * 3. Gửi POST đến /api/auth/login
+     * 4. Nếu OK → lưu token + redirect dashboard
+     * 5. Nếu lỗi → hiển thị thông báo lỗi
+     */
+    function handleLogin(event) {
+        event.preventDefault();  // Ngăn form refresh page
+
+        // 1. Lấy giá trị từ form
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        // 2. Gửi request đến backend
+        fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        })
+            .then(response => {
+                // Kiểm tra HTTP status (200, 401, 500...)
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+                return response.json();  // Parse JSON
+            })
+            .then(data => {
+                // 3. Xử lý response từ backend
+
+                console.log('Login response:', data);  // Debug
+
+                if (data.status === 'FIRST_LOGIN') {
+                    // Lần đầu đăng nhập → cần đổi mật khẩu
+                    alert('Vui lòng đổi mật khẩu lần đầu đăng nhập');
+                    window.location.href = `/change-password.html?accountId=${data.accountId}`;
+                }
+                else if (data.status === 'SUCCESS') {
+                    // Đăng nhập thành công
+
+                    // 4. Lưu token + thông tin user vào localStorage
+                    localStorage.setItem('token', data.accountId);  // Lưu account ID làm token
+                    localStorage.setItem('username', data.username);
+                    localStorage.setItem('userRole', data.role);
+
+                    // 5. Đóng modal
+                    document.getElementById('loginModal').style.display = 'none';
+                    document.getElementById('overlay').style.display = 'none';
+
+                    // Xóa form
+                    document.querySelector('#loginModal form').reset();
+
+                    // 6. Redirect đến dashboard
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 500);
+                }
+            })
+            .catch(error => {
+                // 7. Xử lý lỗi
+                console.error('Login error:', error);
+
+                const errorDiv = document.getElementById('loginError');
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = 'Đăng nhập thất bại. Vui lòng kiểm tra username/password';
+            });
+    }
+
+    /**
+     * Hàm logout: Xóa token + redirect về login
+     * Gọi hàm này khi user bấm nút "Đăng xuất"
+     */
+    function handleLogout() {
+        // 1. Xóa token từ localStorage
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        localStorage.removeItem('userRole');
+
+        // 2. Redirect về trang login
+        window.location.href = '/';
+    }
+
+    /**
+     * Hàm checkAuthStatus: Kiểm tra xem user đã đăng nhập chưa
+     *
+     * Dùng trên trang dashboard:
+     * - Nếu chưa đăng nhập → redirect về login
+     * - Nếu đã đăng nhập → load dữ liệu
+     *
+     * Gọi hàm này ở đầu trang dashboard.html
+     */
+    function checkAuthStatus() {
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            console.log('Không có token, redirect về login');
+            window.location.href = '/';
+        } else {
+            console.log('Token có, user đã đăng nhập');
+        }
+    }
+
+    // ========== GET REQUEST VỚI TOKEN ==========
+
+    /**
+     * Hàm fetchWithAuth: Gọi API với token trong header
+     *
+     * Cách dùng:
+     * fetchWithAuth('/api/properties')
+     *     .then(data => console.log(data))
+     *
+     * Hoặc với body:
+     * fetchWithAuth('/api/properties', {
+     *     method: 'POST',
+     *     body: JSON.stringify({name: 'New Property'})
+     * })
+     */
+    function fetchWithAuth(url, options = {}) {
+        const token = localStorage.getItem('token');
+
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
+
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        return fetch(url, {
+            ...options,
+            headers: headers
+        })
+            .then(response => {
+                if (response.status === 401) {
+                    // Token hết hạn hoặc không hợp lệ
+                    alert('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại');
+                    handleLogout();
+                    throw new Error('Unauthorized');
+                }
+                return response.json();
+            });
+    }
 </script>
 </body>
 </html>
