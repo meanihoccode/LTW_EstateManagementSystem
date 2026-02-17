@@ -190,7 +190,7 @@
                 if (data.status === 'FIRST_LOGIN') {
                     // Lần đầu đăng nhập → cần đổi mật khẩu
                     alert('Vui lòng đổi mật khẩu lần đầu đăng nhập');
-                    window.location.href = `/change-password.html?accountId=${data.accountId}`;
+                    window.location.href = `/change-password?accountId=${data.accountId}`;
                 }
                 else if (data.status === 'SUCCESS') {
                     // Đăng nhập thành công
