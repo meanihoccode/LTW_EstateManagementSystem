@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="/css/style.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/animate.css">
 </head>
 <body>
 
@@ -30,7 +31,7 @@
 </header>
 
 <section class="hero">
-    <div class="hero-left">
+    <div class="hero-left wow bounceInLeft" data-wow-duration="1s" data-wow-delay="1.2s">
         <h1>
             Find Your<br>
             Dream Home
@@ -42,7 +43,7 @@
         </p>
     </div>
 
-    <div class="hero-right">
+    <div class="hero-right wow bounceInRight" data-wow-duration="1s" data-wow-delay="0.25s">
         <img src="/img/house.png" alt="Modern House">
     </div>
 </section>
@@ -94,6 +95,10 @@
 </div>
 
 <!-- <script src="script.js"> -->
+<script src="/js/wow.min.js"></script>
+<script>
+    new WOW().init();
+</script>
 <script>
     const links = document.querySelectorAll(".nav a");
     const currentPath = window.location.pathname.split("/").pop();
