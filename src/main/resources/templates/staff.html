@@ -147,8 +147,6 @@
                 }
 
                 staffData = await response.json();
-                console.log('📊 Dữ liệu từ API:', staffData);
-                console.log('🔍 Chi tiết item đầu tiên:', staffData[0]);
                 renderTable();
             } catch (error) {
                 console.error('Error:',error);

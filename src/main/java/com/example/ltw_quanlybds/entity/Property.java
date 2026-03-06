@@ -55,5 +55,12 @@ public class Property {
     @ManyToOne
     @JoinColumn(name = "nhan_vien_id")
     private User staff;
+
+    // Transient fields để nhận ID từ frontend (không lưu vào database)
+    @Transient
+    private Integer ownerId;
+
+    @Transient
+    private Integer staffId;
 }
 
