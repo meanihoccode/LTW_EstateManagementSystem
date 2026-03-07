@@ -67,7 +67,7 @@
             <div class="dashboard-content">
                 <!-- Search & Filter -->
                 <div class="search-filter">
-                    <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên hoặc email...">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên, SĐT hoặc email...">
                 </div>
 
                 <!-- Tenants Table -->
@@ -138,31 +138,21 @@
             setupEventListeners();
         });
 
-        function loadTenants() {
-            tenantsData = [
-                {
-                    id: 1,
-                    hoTen: 'Nguyễn Văn A',
-                    soCCCD: '123456789',
-                    soDienThoai: '0901234567',
-                    email: 'nguyena@email.com'
-                },
-                {
-                    id: 2,
-                    hoTen: 'Trần Thị B',
-                    soCCCD: '987654321',
-                    soDienThoai: '0912345678',
-                    email: 'tranb@email.com'
-                },
-                {
-                    id: 3,
-                    hoTen: 'Phạm Minh C',
-                    soCCCD: '456789123',
-                    soDienThoai: '0923456789',
-                    email: 'phamc@email.com'
+        async function loadTenants() {
+            try {
+                const response = await fetch('/api/tenants');
+                if(!response.ok) {
+                    throw new Error('Failed to load staffs');
                 }
-            ];
-            renderTable();
+
+                tenantsData = await response.json();
+                renderTable();
+            } catch (error) {
+                console.error('Error: ', error);
+                alert('Lỗi khi tải dữ liệu khách thuê. Vui lòng thử lại sau.');
+                tenantsData = [];
+                renderTable();
+            }
         }
 
         function renderTable() {
@@ -175,9 +165,9 @@
             tbody.innerHTML = tenantsData.map(t => `
                 <tr>
                     <td>#${t.id}</td>
-                    <td>${t.hoTen}</td>
-                    <td>${t.soCCCD}</td>
-                    <td>${t.soDienThoai}</td>
+                    <td>${t.fullName}</td>
+                    <td>${t.idNumber}</td>
+                    <td>${t.phone}</td>
                     <td>${t.email}</td>
                     <td>
                         <button class="btn-small" onclick="editTenant(${t.id})">Sửa</button>
@@ -208,55 +198,77 @@
             document.getElementById('tenantModal').style.display = 'none';
         }
 
-        function saveTenant(e) {
+        async function saveTenant(e) {
             e.preventDefault();
             const editingId = document.getElementById('tenantForm').dataset.editingId;
             const tenant = {
                 id: tenantsData.length + 1,
-                hoTen: document.getElementById('hoTen').value,
-                soCCCD: document.getElementById('soCCCD').value,
-                soDienThoai: document.getElementById('soDienThoai').value,
+                fullName: document.getElementById('hoTen').value,
+                idNumber: document.getElementById('soCCCD').value,
+                phone: document.getElementById('soDienThoai').value,
                 email: document.getElementById('email').value
             };
-            if (editingId) {
-                const index = tenantsData.findIndex(t => t.id == editingId);
-                if (index !==-1) {
-                    tenantsData[index] = {
-                        id: parseInt(editingId),
-                        hoTen: tenant.hoTen,
-                        soCCCD: tenant.soCCCD,
-                        soDienThoai: tenant.soDienThoai,
-                        email: tenant.email
-                    };
-                }
-                delete document.getElementById('tenantForm').dataset.editingId;
-            } else {
-                const newId = tenantsData.length > 0 ? Math.max(...tenantsData.map(t => t.id)) + 1 : 1;
-                const newTenant = { ...tenant, id: newId };
-                tenantsData.push(newTenant);
+            if (!tenant.fullName||!tenant.idNumber||!tenant.phone||!tenant.email) {
+                alert('Vui lòng điền đầy đủ thông tin');
+                return;
             }
-            renderTable();
-            closeModal();
+            try {
+                const url = editingId ? `/api/tenants/${editingId}` : '/api/tenants';
+                const method = editingId ? 'PUT' : 'POST';
+                const response = await fetch (url , {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(tenant)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to save tenant');
+                }
+                alert((editingId ? 'Cập nhật' : 'Thêm') + ' khách thuê thành công');
+                closeModal();
+                loadTenants();
+            } catch (error) {
+                console.error('Error: ', error);
+                alert('Lỗi khi lưu khách thuê. Vui lòng thử lại sau.');
+            }
         }
 
-        function editTenant(id) {
-            const tenant = tenantsData.find(t => t.id === id);
-            if (!tenant) return;
+        async function editTenant(id) {
+            try {
+                const resonse = await fetch(`/api/tenants/${id}`);
+                if (!resonse.ok) {
+                    throw new Error('Failed to load tenant details');
+                }
+                const tenant = await resonse.json();
 
-            document.getElementById('hoTen').value = tenant.hoTen;
-            document.getElementById('soCCCD').value = tenant.soCCCD;
-            document.getElementById('soDienThoai').value = tenant.soDienThoai;
-            document.getElementById('email').value = tenant.email;
+                document.getElementById('hoTen').value = tenant.fullName;
+                document.getElementById('soCCCD').value = tenant.idNumber;
+                document.getElementById('soDienThoai').value = tenant.phone;
+                document.getElementById('email').value = tenant.email;
 
-            document.getElementById('tenantForm').dataset.editingId = id;
-            document.getElementById('modalTitle').textContent = 'Sửa Khách Thuê';
-            document.getElementById('tenantModal').style.display = 'block';
+                document.getElementById('tenantForm').dataset.editingId = id;
+                document.getElementById('modalTitle').textContent = 'Sửa Khách Thuê';
+                document.getElementById('tenantModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error: ', error);
+                alert('Lỗi khi tải thông tin khách thuê. Vui lòng thử lại sau.');
+            }
         }
 
-        function deleteTenant(id) {
+        async function deleteTenant(id) {
             if (confirm('Bạn có chắc muốn xóa?')) {
-                tenantsData = tenantsData.filter(t => t.id !== id);
-                renderTable();
+                const response = await fetch(`/api/tenants/${id}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to delete tenant');
+                }
+                alert('Xóa khách thuê thành công');
+                loadTenants();
+            } else {
+                return;
             }
         }
 
@@ -264,8 +276,8 @@
             const searchText = document.getElementById('searchInput').value.toLowerCase();
 
             const filtered = tenantsData.filter(t => {
-                return t.hoTen.toLowerCase().includes(searchText) ||
-                    t.email.toLowerCase().includes(searchText);
+                return t.fullName.toLowerCase().includes(searchText) ||
+                    t.email.toLowerCase().includes(searchText) || t.phone.includes(searchText);
             });
 
             const tbody = document.getElementById('tenantsTable');
@@ -277,9 +289,9 @@
             tbody.innerHTML = filtered.map(t => `
                 <tr>
                     <td>#${t.id}</td>
-                    <td>${t.hoTen}</td>
-                    <td>${t.soCCCD}</td>
-                    <td>${t.soDienThoai}</td>
+                    <td>${t.fullName}</td>
+                    <td>${t.idNumber}</td>
+                    <td>${t.phone}</td>
                     <td>${t.email}</td>
                     <td>
                         <button class="btn-small" onclick="editTenant(${t.id})">Sửa</button>
@@ -288,6 +300,8 @@
                 </tr>
             `).join('');
         }
+
+        document.querySelector('#searchInput').addEventListener('keyup',filterTable);
 
         window.addEventListener('click', function(event) {
             const modal = document.getElementById('tenantModal');

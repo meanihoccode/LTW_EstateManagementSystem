@@ -67,7 +67,7 @@
             <div class="dashboard-content">
                 <!-- Search & Filter -->
                 <div class="search-filter">
-                    <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên hoặc email...">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên, SĐT hoặc email...">
                 </div>
 
                 <!-- Owners Table -->
@@ -138,31 +138,20 @@
             setupEventListeners();
         });
 
-        function loadOwners() {
-            ownersData = [
-                {
-                    id: 1,
-                    hoTen: 'Nguyễn Văn A',
-                    soDienThoai: '0901234567',
-                    email: 'nguyena@email.com',
-                    diaChi: '123 Đường ABC, Q1, TP.HCM'
-                },
-                {
-                    id: 2,
-                    hoTen: 'Trần Thị B',
-                    soDienThoai: '0912345678',
-                    email: 'tranb@email.com',
-                    diaChi: '456 Đường XYZ, Q5, TP.HCM'
-                },
-                {
-                    id: 3,
-                    hoTen: 'Phạm Minh C',
-                    soDienThoai: '0923456789',
-                    email: 'phamc@email.com',
-                    diaChi: '789 Đường DEF, Q7, TP.HCM'
+        async function loadOwners() {
+            try {
+                const response = await fetch('/api/owners');
+                if (!response.ok) {
+                    throw new Error('Failed to load owners');
                 }
-            ];
-            renderTable();
+                ownersData = await response.json();
+                renderTable();
+            } catch (error) {
+                console.error('Error: ',error);
+                alert('Lỗi khi tải dữ liệu chủ sở hữu. Vui lòng thử lại sau.');
+                ownersData = [];
+                renderTable();
+            }
         }
 
         function renderTable() {
@@ -175,10 +164,10 @@
             tbody.innerHTML = ownersData.map(o => `
                 <tr>
                     <td>#${o.id}</td>
-                    <td>${o.hoTen}</td>
-                    <td>${o.soDienThoai}</td>
+                    <td>${o.fullName}</td>
+                    <td>${o.phone}</td>
                     <td>${o.email}</td>
-                    <td>${o.diaChi}</td>
+                    <td>${o.address}</td>
                     <td>
                         <button class="btn-small" onclick="editOwner(${o.id})">Sửa</button>
                         <button class="btn-small btn-danger" onclick="deleteOwner(${o.id})">Xóa</button>
@@ -207,48 +196,85 @@
             document.getElementById('ownerModal').style.display = 'none';
         }
 
-        function saveOwner(e) {
+        async function saveOwner(e) {
             e.preventDefault();
             const editingId = document.getElementById('ownerForm').dataset.editingId;
             const owner = {
-                id: ownersData.length + 1,
-                hoTen: document.getElementById('hoTen').value,
-                soDienThoai: document.getElementById('soDienThoai').value,
+                fullName: document.getElementById('hoTen').value,
+                phone: document.getElementById('soDienThoai').value,
                 email: document.getElementById('email').value,
-                diaChi: document.getElementById('diaChi').value
+                address: document.getElementById('diaChi').value
             };
+
+            // Khi sửa, thêm id vào
             if (editingId) {
-                const index = ownersData.findIndex(o => o.id == editingId);
-                if (index !== -1) {
-                    ownersData[index] = { ...owner, id: parseInt(editingId) };
-                }
-                delete document.getElementById('ownerForm').dataset.editingId;
-            } else {
-                const newId = ownersData.length > 0 ? Math.max(...ownersData.map(o => o.id)) + 1 : 1;
-                const newOwner = { ...owner, id: newId };
-                ownersData.push(newOwner);
+                owner.id = parseInt(editingId);
             }
-            renderTable();
-            closeModal();
+            if (!owner.fullName||!owner.phone||!owner.email||!owner.address) {
+                alert('Vui lòng điền đầy đủ thông tin');
+                return;
+            }
+            try {
+                const url = editingId ? `/api/owners/${editingId}` : '/api/owners';
+                const method = editingId ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(owner)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.log('Error response: ',errorData);
+                    throw new Error(errorData.message || 'Failed to save owner');
+                }
+                alert((editingId ? 'Cập nhật' : 'Thêm') + ' chủ sở hữu thành công');
+                closeModal();
+                loadOwners();
+            } catch (error) {
+                console.error('Error: ',error);
+                alert('Lỗi khi lưu chủ sở hữu. Vui lòng thử lại sau.');
+            }
         }
 
-        function editOwner(id) {
-            const owner = ownersData.find(o => o.id === id);
-            if (owner) {
+        async function editOwner(id) {
+            try {
+                const response = await fetch(`/api/owners/${id}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load owner details');
+                }
+                const owner = await response.json();
+
                 document.getElementById('modalTitle').textContent = 'Sửa Chủ Sở Hữu';
-                document.getElementById('hoTen').value = owner.hoTen;
-                document.getElementById('soDienThoai').value = owner.soDienThoai;
+                document.getElementById('hoTen').value = owner.fullName;
+                document.getElementById('soDienThoai').value = owner.phone;
                 document.getElementById('email').value = owner.email;
-                document.getElementById('diaChi').value = owner.diaChi;
+                document.getElementById('diaChi').value = owner.address;
                 document.getElementById('ownerForm').dataset.editingId = id;
                 document.getElementById('ownerModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error: ',error);
+                alert('Lỗi khi tải thông tin chủ sở hữu. Vui lòng thử lại sau.');
             }
         }
 
-        function deleteOwner(id) {
+        async function deleteOwner(id) {
             if (confirm('Bạn có chắc muốn xóa?')) {
-                ownersData = ownersData.filter(o => o.id !== id);
-                renderTable();
+                try {
+                    const response = await fetch(`/api/owners/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Failed to delete owner');
+                    }
+                    alert('Xoá chủ sở hữu thành công');
+                    loadOwners();
+                } catch (error) {
+                    console.error('Error: ',error);
+                    alert('Lỗi khi xoá chủ sở hữu. Vui lòng thử lại sau.');
+                }
             }
         }
 
@@ -256,8 +282,8 @@
             const searchText = document.getElementById('searchInput').value.toLowerCase();
 
             const filtered = ownersData.filter(o => {
-                return o.hoTen.toLowerCase().includes(searchText) ||
-                    o.email.toLowerCase().includes(searchText);
+                return o.fullName.toLowerCase().includes(searchText) ||
+                    o.email.toLowerCase().includes(searchText) || o.phone.includes(searchText);
             });
 
             const tbody = document.getElementById('ownersTable');
@@ -269,10 +295,10 @@
             tbody.innerHTML = filtered.map(o => `
                 <tr>
                     <td>#${o.id}</td>
-                    <td>${o.hoTen}</td>
-                    <td>${o.soDienThoai}</td>
+                    <td>${o.fullName}</td>
+                    <td>${o.phone}</td>
                     <td>${o.email}</td>
-                    <td>${o.diaChi}</td>
+                    <td>${o.address}</td>
                     <td>
                         <button class="btn-small" onclick="editOwner(${o.id})">Sửa</button>
                         <button class="btn-small btn-danger" onclick="deleteOwner(${o.id})">Xóa</button>
@@ -280,6 +306,7 @@
                 </tr>
             `).join('');
         }
+        document.querySelector('#searchInput').addEventListener('keyup',filterTable);
 
         window.addEventListener('click', function(event) {
             const modal = document.getElementById('ownerModal');
