@@ -136,7 +136,7 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Tiền cọc ($):</label>
+                        <label>Tiền cọc (đ):</label>
                         <input type="number" id="tienCoc" required>
                     </div>
                     <div class="form-group">
@@ -171,59 +171,71 @@
             setupEventListeners();
         });
 
-        function loadContracts() {
-            contractsData = [
-                {
-                    id: 1,
-                    batDongSan: 'BĐS-001',
-                    khachThue: 'Nguyễn Văn A',
-                    ngayBatDau: '15/01/2026',
-                    ngayKetThuc: '15/06/2026',
-                    tienCoc: 1200,
-                    trangThai: 'Hiệu lực'
-                },
-                {
-                    id: 2,
-                    batDongSan: 'BĐS-002',
-                    khachThue: 'Trần Thị B',
-                    ngayBatDau: '01/02/2026',
-                    ngayKetThuc: '30/08/2026',
-                    tienCoc: 950,
-                    trangThai: 'Hiệu lực'
-                },
-                {
-                    id: 3,
-                    batDongSan: 'BĐS-003',
-                    khachThue: 'Phạm Minh C',
-                    ngayBatDau: '10/03/2026',
-                    ngayKetThuc: '10/05/2026',
-                    tienCoc: 1500,
-                    trangThai: 'Chờ duyệt'
+        async function loadContracts() {
+            try {
+                const resonse = await fetch('/api/contracts');
+                if (!resonse.ok) {
+                    throw new Error("Failed to load contracts");
                 }
-            ];
-            renderTable();
+                contractsData = await resonse.json();
+                renderTable();
+            } catch (error) {
+                console.error("Error loading contracts:", error);
+                alert('Lỗi khi tải dữ liệu hợp đồng. Vui lòng thử lại sau.');
+                contractsData = [];
+                renderTable();
+            }
         }
 
-        function loadProperties() {
+        async function loadProperties() {
             const select = document.getElementById('batDongSan');
-            const properties = ['BĐS-001', 'BĐS-002', 'BĐS-003', 'BĐS-004'];
-            properties.forEach(prop => {
-                const option = document.createElement('option');
-                option.value = prop;
-                option.textContent = prop;
-                select.appendChild(option);
-            });
+            try {
+                const response = await fetch('/api/properties');
+                if (!response.ok) {
+                    throw new Error("Failed to load properties");
+                }
+                const properties = await response.json();
+                console.log(properties);
+
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
+                properties.forEach(prop => {
+                    const option = document.createElement('option');
+                    option.value = prop.id;
+                    option.textContent = prop.name;
+                    select.appendChild(option);
+                })
+            } catch (error) {
+                console.error("Error loading properties:", error);
+                alert('Lỗi khi tải dữ liệu BĐS. Vui lòng thử lại sau.');
+                return;
+            }
         }
 
-        function loadTenants() {
+        async function loadTenants() {
             const select = document.getElementById('khachThue');
-            const tenants = ['Nguyễn Văn A', 'Trần Thị B', 'Phạm Minh C', 'Hoàng Tuấn D'];
-            tenants.forEach(tenant => {
-                const option = document.createElement('option');
-                option.value = tenant;
-                option.textContent = tenant;
-                select.appendChild(option);
-            });
+            try {
+                const response = await fetch('/api/tenants');
+                if (!response.ok) {
+                    throw new Error("Failed to load tenants");
+                }
+                const tenants = await response.json();
+                console.log(tenants);
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
+                tenants.forEach(tenant => {
+                    const option = document.createElement('option');
+                    option.value = tenant.id;
+                    option.textContent = tenant.fullName;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error loading tenants:", error);
+                alert('Lỗi khi tải dữ liệu khách thuê. Vui lòng thử lại sau.');
+                return;
+            }
         }
 
         // renderTable()	Hiển thị dữ liệu hợp đồng lên bảng
@@ -237,12 +249,12 @@
             tbody.innerHTML = contractsData.map(c => `
                 <tr>
                     <td>#${c.id}</td>
-                    <td>${c.batDongSan}</td>
-                    <td>${c.khachThue}</td>
-                    <td>${c.ngayBatDau}</td>
-                    <td>${c.ngayKetThuc}</td>
-                    <td>$${c.tienCoc}</td>
-                    <td><span class="badge ${getStatusClass(c.trangThai)}">${c.trangThai}</span></td>
+                    <td>${c.property.name}</td>
+                    <td>${c.tenant.fullName}</td>
+                    <td>${c.startDate}</td>
+                    <td>${c.endDate}</td>
+                    <td>${c.deposit}Đ</td>
+                    <td><span class="badge ${getStatusClass(c.status)}">${c.status}</span></td>
                     <td>
                         <button class="btn-small" onclick="editContract(${c.id})">Sửa</button>
                         <button class="btn-small btn-danger" onclick="deleteContract(${c.id})">Xóa</button>
@@ -282,60 +294,100 @@
             document.getElementById('contractModal').style.display = 'none';
         }
         // saveContract()	Lưu hợp đồng mới
-        function saveContract(e) {
+        async function saveContract(e) {
             e.preventDefault();
 
             const editingId = document.getElementById('contractForm').dataset.editingId;
-            const contract = {
-                id: contractsData.length + 1,
-                batDongSan: document.getElementById('batDongSan').value,
-                khachThue: document.getElementById('khachThue').value,
-                ngayBatDau: document.getElementById('ngayBatDau').value,
-                ngayKetThuc: document.getElementById('ngayKetThuc').value,
-                tienCoc: document.getElementById('tienCoc').value,
-                trangThai: document.getElementById('trangThai').value
-            };
+            // Lấy dữ liệu từ form
+            const propertyId = document.getElementById('batDongSan').value;
+            const tenantId = document.getElementById('khachThue').value;
+            const startDate = document.getElementById('ngayBatDau').value;
+            const endDate = document.getElementById('ngayKetThuc').value;
+            const deposit = document.getElementById('tienCoc').value;
+            const status = document.getElementById('trangThai').value;
 
-            if (editingId) {
-                const index = contractsData.findIndex(c => c.id == editingId);
-                if (index !== -1) {
-                    contractsData[index] = { id: parseInt(editingId), ...contract };
-                    renderTable();
-                    closeModal();
-                }
-                delete document.getElementById('contractForm').dataset.editingId;
-            } else {
-                const newId = contractsData.length > 0 ? Math.max(...contractsData.map(c => c.id)) + 1 : 1;
-                const newContract = {
-                    id: newId, ...contract
-                };
-                contractsData.push(newContract);
+            // Kiểm tra required fields
+            if (!propertyId || !tenantId || !startDate || !endDate || !deposit || !status) {
+                alert('Vui lòng điền đầy đủ thông tin');
+                return;
             }
-            renderTable();
-            closeModal();
+
+            // Kiểm tra ngày kết thúc phải sau ngày bắt đầu
+            if (new Date(endDate) <= new Date(startDate)) {
+                alert('Ngày kết thúc phải sau ngày bắt đầu');
+                return;
+            }
+
+            const contract = {
+                id: editingId,
+                propertyId: parseInt(propertyId),
+                tenantId: parseInt(tenantId),
+                startDate: startDate,  // Format YYYY-MM-DD từ input type="date"
+                endDate: endDate,      // Format YYYY-MM-DD từ input type="date"
+                deposit: parseFloat(deposit), // Convert sang number
+                status: status
+            };
+            try {
+                const url = editingId ? '/api/contracts/' + editingId : '/api/contracts';
+                const method = editingId ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(contract)
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to save contract");
+                }
+                closeModal();
+                await loadContracts();
+
+            } catch (error) {
+                console.error("Error saving contract:", error);
+                alert('Lỗi khi lưu hợp đồng. Vui lòng thử lại sau.');
+            }
         }
-        // editContract()	Sửa hợp đồng (chức năng chưa phát triển)
-        function editContract(id) {
-            const contract = contractsData.find(c => c.id === id);
-            if (!contract) return;
 
-            document.getElementById('batDongSan').value = contract.batDongSan;
-            document.getElementById('khachThue').value = contract.khachThue;
-            document.getElementById('ngayBatDau').value = contract.ngayBatDau;
-            document.getElementById('ngayKetThuc').value = contract.ngayKetThuc;
-            document.getElementById('tienCoc').value = contract.tienCoc;
-            document.getElementById('trangThai').value = contract.trangThai;
+        // editContract()
+        async function editContract(id) {
+            try {
+            const response = await fetch('/api/contracts/' + id);
+                if (!response.ok) {
+                    throw new Error("Failed to load contract details");
+                }
+                const contract = await response.json();
+                document.getElementById('batDongSan').value = contract.property.id;
+                document.getElementById('khachThue').value = contract.tenant.id;
+                document.getElementById('ngayBatDau').value = contract.startDate;
+                document.getElementById('ngayKetThuc').value = contract.endDate;
+                document.getElementById('tienCoc').value = contract.deposit;
+                document.getElementById('trangThai').value = contract.status;
 
-            document.getElementById('contractForm').dataset.editingId = id;
-            document.getElementById('modalTitle').textContent = 'Sửa Hợp Đồng';
-            document.getElementById('contractModal').style.display = 'block';
+                document.getElementById('contractForm').dataset.editingId = id;
+                document.getElementById('modalTitle').textContent = 'Sửa Hợp Đồng';
+                document.getElementById('contractModal').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error:',error);
+                alert('Lỗi khi tải chi tiết hợp đồng. Vui lòng thử lại sau.');
+                return;
+            }
         }
         // deleteContract()	Xóa hợp đồng
-        function deleteContract(id) {
+        async function deleteContract(id) {
             if (confirm('Bạn có chắc muốn xóa?')) {
-                contractsData = contractsData.filter(c => c.id !== id);
-                renderTable();
-            }
+                try {
+                    const response = await fetch('/api/contracts/' + id,
+                        { method: 'DELETE' }
+                    );
+                    if (!response.ok) {
+                        throw new Error("Failed to delete contract");
+                    }
+                    await loadContracts();
+                } catch (error) {
+                    console.error("Error: ", error);
+                    alert('Lỗi khi xóa hợp đồng. Vui lòng thử lại sau.');
+                }
+            } else return;
         }
 
         // tìm kiếm & lọc trạng thái
@@ -344,9 +396,9 @@
             const statusFilter = document.getElementById('filterStatus').value;
 
             const filtered = contractsData.filter(c => {
-                const matchesSearch = c.batDongSan.toLowerCase().includes(searchText) ||
-                    c.khachThue.toLowerCase().includes(searchText);
-                const matchesStatus = statusFilter === '' || c.trangThai === statusFilter;
+                const matchesSearch = c.property.name.toLowerCase().includes(searchText) ||
+                    c.tenant.fullName.toLowerCase().includes(searchText);
+                const matchesStatus = statusFilter === '' || c.status === statusFilter;
                 return matchesSearch && matchesStatus;
             });
 
@@ -359,12 +411,12 @@
             tbody.innerHTML = filtered.map(c => `
                 <tr>
                     <td>#${c.id}</td>
-                    <td>${c.batDongSan}</td>
-                    <td>${c.khachThue}</td>
-                    <td>${c.ngayBatDau}</td>
-                    <td>${c.ngayKetThuc}</td>
-                    <td>$${c.tienCoc}</td>
-                    <td><span class="badge ${getStatusClass(c.trangThai)}">${c.trangThai}</span></td>
+                    <td>${c.property.name}</td>
+                    <td>${c.tenant.fullName}</td>
+                    <td>${c.startDate}</td>
+                    <td>${c.endDate}</td>
+                    <td>$${c.deposit}</td>
+                    <td><span class="badge ${getStatusClass(c.status)}">${c.status}</span></td>
                     <td>
                         <button class="btn-small" onclick="editContract(${c.id})">Sửa</button>
                         <button class="btn-small btn-danger" onclick="deleteContract(${c.id})">Xóa</button>
@@ -372,13 +424,17 @@
                 </tr>
             `).join('');
         }
-        // Đóng modal khi click ngoài nội dung
+
+        document.querySelector('#searchInput').addEventListener('keyup',filterTable);
+
+            // Đóng modal khi click ngoài nội dung
         window.addEventListener('click', function(event) {
             const modal = document.getElementById('contractModal');
             if (event.target === modal) {
                 modal.style.display = 'none';
             }
         });
+
     </script>
 </body>
 </html>
