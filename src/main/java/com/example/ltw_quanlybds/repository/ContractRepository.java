@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface ContractRepository extends JpaRepository<Contract,Integer> {
     public List<Contract> findByStatus(String status);
+    public long countByStatus(String status);
 }

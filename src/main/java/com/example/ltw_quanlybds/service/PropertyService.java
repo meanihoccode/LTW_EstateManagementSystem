@@ -102,4 +102,12 @@ public class PropertyService {
         }
         propertyRepository.deleteById(id);
     }
+
+    public long getTotalProperties() {
+        return propertyRepository.count();
+    }
+
+    public long getEmptyProperties() {
+        return propertyRepository.countByStatus("Trống");
+    }
 }
