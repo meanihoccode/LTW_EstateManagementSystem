@@ -41,5 +41,8 @@ public class Payment {
 
     @Column(name = "trang_thai")
     private String status;
+
+    @Transient
+    private Integer contractId; // Dùng để nhận contractId từ frontend
 }
 

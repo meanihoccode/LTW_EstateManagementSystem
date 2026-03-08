@@ -26,7 +26,6 @@ public class OwnerService {
     }
 
     public Owner createOwner(Owner owner) {
-        owner.setId(null); // Đảm bảo id là null để Hibernate tạo mới
         return ownerRepository.save(owner);
     }
 
