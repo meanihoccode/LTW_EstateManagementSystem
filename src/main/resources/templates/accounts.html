@@ -6,6 +6,7 @@
     <title>Quản lý Tài Khoản - Meani Real Estate</title>
     <link rel="stylesheet" href="/css/dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/js/darkmode.js"></script>
     <style>
         .accounts-section {
             margin-top: 20px;
@@ -140,6 +141,98 @@
         .tab-btn.active:hover {
             background: #2B1A10;
         }
+
+        /* ========== DARK MODE FOR ACCOUNTS ========== */
+        body.dark-mode .account-card {
+            background: #262626;
+            border-left-color: #4CAF50;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        body.dark-mode .info-label {
+            color: #b8b8b8;
+        }
+
+        body.dark-mode .info-value {
+            color: #e8e8e8;
+        }
+
+        body.dark-mode .staff-info {
+            background: #1a1a1a;
+            color: #d0d0d0;
+        }
+
+        body.dark-mode .staff-info strong {
+            color: #4CAF50;
+        }
+
+        body.dark-mode .btn-copy {
+            background: #1a3a4a;
+            color: #66b3ff;
+        }
+
+        body.dark-mode .btn-copy:hover {
+            background: #0d2635;
+        }
+
+        body.dark-mode .btn-reset-pwd {
+            background: #4a3a1a;
+            color: #ffc700;
+        }
+
+        body.dark-mode .btn-reset-pwd:hover {
+            background: #3a2a0a;
+        }
+
+        body.dark-mode .btn-delete-acc {
+            background: #4a1a1a;
+            color: #ff6b6b;
+        }
+
+        body.dark-mode .btn-delete-acc:hover {
+            background: #3a0a0a;
+        }
+
+        body.dark-mode .filter-tabs {
+            background: transparent;
+        }
+
+        body.dark-mode .tab-btn {
+            background: #333;
+            color: #b8b8b8;
+        }
+
+        body.dark-mode .tab-btn:hover {
+            background: #444;
+        }
+
+        body.dark-mode .tab-btn.active {
+            background: #4CAF50;
+            color: white;
+        }
+
+        body.dark-mode .tab-btn.active:hover {
+            background: #66BB6A;
+        }
+
+        body.dark-mode .search-filter input {
+            background: #333;
+            color: #e8e8e8;
+            border-color: #444;
+        }
+
+        body.dark-mode .search-filter input::placeholder {
+            color: #888;
+        }
+
+        /* Dark mode for loading and empty states */
+        body.dark-mode .accounts-section {
+            color: #e8e8e8;
+        }
+
+        body.dark-mode .accounts-section div[style*="color: #999"] {
+            color: #666 !important;
+        }
     </style>
 </head>
 <body>
@@ -193,6 +286,7 @@
             <div class="top-bar">
                 <h1>Quản lý Tài Khoản</h1>
                 <div class="user-section">
+                    <button id="darkModeToggle" class="btn-dark-mode" title="Bật/Tắt chế độ tối">🌙</button>
                     <a href="/" class="btn-logout">Đăng xuất</a>
                 </div>
             </div>
@@ -331,6 +425,11 @@
         document.getElementById('searchInput').addEventListener('keyup', applyFilters);
 
         /* ================= BUTTON FUNCTIONS ================= */
+
+
+
+
+
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text)

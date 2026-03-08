@@ -27,9 +27,18 @@ public class PropertyController {
         return ResponseEntity.ok(propertyService.getPropertyById(id));
     }
 
+    @GetMapping("/total")
+    public ResponseEntity<Long> getTotalProperties() {
+        return ResponseEntity.ok(propertyService.getTotalProperties());
+    }
     @GetMapping("/status/{status}")
     public ResponseEntity<List<Property>> getPropertiesByStatus(@PathVariable String status) {
         return ResponseEntity.ok(propertyService.getPropertiesByStatus(status));
+    }
+
+    @GetMapping("/emptyProperties")
+    public ResponseEntity<Long> getEmptyProperties() {
+        return ResponseEntity.ok(propertyService.getEmptyProperties());
     }
 
     @PostMapping

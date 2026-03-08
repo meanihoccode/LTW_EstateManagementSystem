@@ -6,6 +6,7 @@
     <title>Quản lý BĐS - Meani Real Estate</title>
     <link rel="stylesheet" href="/css/dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/js/darkmode.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -89,6 +90,7 @@
                                 <th>Giá thuê</th>
                                 <th>Trạng thái</th>
                                 <th>Chủ sở hữu</th>
+                                <th>NV quản lý</th>
                                 <th>Thao tác</th>
                             </tr>
                         </thead>
@@ -138,7 +140,7 @@
                         <input type="number" id="dienTich" required>
                     </div>
                     <div class="form-group">
-                        <label>Giá thuê ($/tháng):</label>
+                        <label>Giá thuê (đ/tháng):</label>
                         <input type="number" id="giaThue" required>
                     </div>
                 </div>
@@ -154,7 +156,15 @@
                     <div class="form-group">
                         <label>Chủ sở hữu:</label>
                         <select id="chuSoHuu" required>
-                            <option>-- Chọn chủ sở hữu --</option>
+                            <option value="">-- Chọn chủ sở hữu --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group full">
+                        <label>Nhân viên quản lý:</label>
+                        <select id="nhanVienQuanLy" required>
+                            <option value="">-- Chọn nhân viên --</option>
                         </select>
                     </div>
                 </div>
@@ -172,56 +182,81 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadProperties();
             loadOwners();
+            loadStaffs();
             setupEventListeners();
         });
 
-        function loadProperties() {
-            // Sample data
-            propertiesData = [
-                {
-                    id: 1,
-                    tenBDS: 'Căn hộ Quận 1',
-                    loaiBDS: 'Căn hộ',
-                    diaChi: '123 Nguyễn Huệ, Q1',
-                    dienTich: 85,
-                    giaThue: 1200,
-                    trangThai: 'Cho thuê',
-                    chuSoHuu: 'Nguyễn Văn A'
-                },
-                {
-                    id: 2,
-                    tenBDS: 'Nhà Quận 5',
-                    loaiBDS: 'Nhà riêng',
-                    diaChi: '456 Lê Lợi, Q5',
-                    dienTich: 120,
-                    giaThue: 950,
-                    trangThai: 'Cho thuê',
-                    chuSoHuu: 'Trần Thị B'
-                },
-                {
-                    id: 3,
-                    tenBDS: 'Biệt thự Quận 7',
-                    loaiBDS: 'Biệt thự',
-                    diaChi: '789 Trần Hưng Đạo, Q7',
-                    dienTich: 200,
-                    giaThue: 1500,
-                    trangThai: 'Trống',
-                    chuSoHuu: 'Phạm Minh C'
+        async function loadProperties() {
+            try {
+                const response = await fetch('/api/properties');
+                if (!response.ok) {
+                    throw new Error('Failed to load properties');
                 }
-            ];
-            renderTable();
+
+                propertiesData = await response.json();
+                renderTable();
+            } catch (error) {
+                console.error('Error:',error);
+                alert('Lỗi tải dữ liệu ' + error.message);
+                propertiesData = []; // Đảm bảo có mảng rỗng để không lỗi khi renderTable()
+                renderTable();
+            }
         }
 
-        function loadOwners() {
-            // Sample owners
+        async function loadOwners() {
             const ownerSelect = document.getElementById('chuSoHuu');
-            const owners = ['Nguyễn Văn A', 'Trần Thị B', 'Phạm Minh C', 'Hoàng Tuấn D'];
-            owners.forEach(owner => {
-                const option = document.createElement('option');
-                option.value = owner;
-                option.textContent = owner;
-                ownerSelect.appendChild(option);
-            });
+            try {
+                const response = await fetch('/api/owners');
+                if (!response.ok) {
+                    throw new Error('Failed to load owners');
+                }
+                const ownersData = await response.json();
+
+                // Xóa tất cả options cũ trừ option đầu tiên
+                while (ownerSelect.options.length > 1) {
+                    ownerSelect.remove(1);
+                }
+
+                // Thêm từng owner vào dropdown
+                ownersData.forEach(owner => {
+                    const option = document.createElement('option');
+                    option.value = owner.id;  // Gán ID của owner
+                    option.textContent = owner.fullName;  // Hiển thị tên của owner
+                    ownerSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Lỗi tải chủ sở hữu: ' + error.message);
+                return;
+            }
+        }
+
+        async function loadStaffs() {
+            const staffSelect = document.getElementById('nhanVienQuanLy');
+            try {
+                const response = await fetch('/api/staffs');
+                if (!response.ok) {
+                    throw new Error('Failed to load staffs');
+                }
+                const staffsData = await response.json();
+
+                // Xóa tất cả options cũ trừ option đầu tiên
+                while (staffSelect.options.length > 1) {
+                    staffSelect.remove(1);
+                }
+
+                // Thêm từng staff vào dropdown
+                staffsData.forEach(staff => {
+                    const option = document.createElement('option');
+                    option.value = staff.id;  // Gán ID của staff
+                    option.textContent = staff.fullName;  // Hiển thị tên của staff
+                    staffSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Lỗi tải nhân viên: ' + error.message);
+                return;
+            }
         }
 
         function renderTable() {
@@ -234,13 +269,14 @@
             tbody.innerHTML = propertiesData.map(p => `
                 <tr>
                     <td>#${p.id}</td>
-                    <td>${p.tenBDS}</td>
-                    <td>${p.loaiBDS}</td>
-                    <td>${p.diaChi}</td>
-                    <td>${p.dienTich}</td>
-                    <td>$${p.giaThue}</td>
-                    <td><span class="badge ${getStatusClass(p.trangThai)}">${p.trangThai}</span></td>
-                    <td>${p.chuSoHuu}</td>
+                    <td>${p.name}</td>
+                    <td>${p.type}</td>
+                    <td>${p.address}</td>
+                    <td>${p.area}</td>
+                    <td>${p.rentalPrice}Đ</td>
+                    <td><span class="badge ${getStatusClass(p.status)}">${p.status}</span></td>
+                    <td>${p.owner ? p.owner.fullName : 'N/A'}</td>
+                    <td>${p.staff ? p.staff.fullName : 'N/A'}</td>
                     <td>
                         <button class="btn-small" onclick="editProperty(${p.id})">Sửa</button>
                         <button class="btn-small btn-danger" onclick="deleteProperty(${p.id})">Xóa</button>
@@ -282,78 +318,107 @@
             document.getElementById('propertyModal').style.display = 'none';
         }
 
-        function saveProperty(e) {
+        async function saveProperty(e) {
             e.preventDefault();
 
             // Lấy ID đang sửa (nếu có)
             const editingId = document.getElementById('propertyForm').dataset.editingId;
 
-            // Lấy dữ liệu từ form ra một object
+            // Lấy dữ liệu từ form
             const formData = {
-                tenBDS: document.getElementById('tenBDS').value,
-                loaiBDS: document.getElementById('loaiBDS').value,
-                diaChi: document.getElementById('diaChi').value,
-                dienTich: Number(document.getElementById('dienTich').value),
-                giaThue: Number(document.getElementById('giaThue').value),
-                trangThai: document.getElementById('trangThai').value,
-                chuSoHuu: document.getElementById('chuSoHuu').value
+                name: document.getElementById('tenBDS').value,
+                type: document.getElementById('loaiBDS').value,
+                address: document.getElementById('diaChi').value,
+                area: parseFloat(document.getElementById('dienTich').value),
+                rentalPrice: parseFloat(document.getElementById('giaThue').value),
+                status: document.getElementById('trangThai').value,
+                ownerId: parseInt(document.getElementById('chuSoHuu').value),
+                staffId: parseInt(document.getElementById('nhanVienQuanLy').value) // Thêm staffId
             };
 
-            if (editingId) {
-                // --- TRƯỜNG HỢP 1: ĐANG SỬA ---
-                const index = propertiesData.findIndex(p => p.id == editingId);
-                if (index !== -1) {
-                    // Giữ nguyên ID cũ, chỉ cập nhật thông tin mới
-                    propertiesData[index] = {
-                        id: parseInt(editingId),
-                        ...formData
-                    };
-                }
-                // Xóa ID đang nhớ để tránh lỗi lần sau
-                delete document.getElementById('propertyForm').dataset.editingId;
-            } else {
-                // --- TRƯỜNG HỢP 2: THÊM MỚI ---
-                // Tạo ID mới (Lấy ID lớn nhất + 1)
-                const newId = propertiesData.length > 0 ? Math.max(...propertiesData.map(p => p.id)) + 1 : 1;
-
-                const newProperty = {
-                    id: newId,
-                    ...formData
-                };
-                propertiesData.push(newProperty);
+            // Kiểm tra required fields
+            if (!formData.name || !formData.address || !formData.ownerId || !formData.type ||
+                !formData.area || !formData.rentalPrice || !formData.status || !formData.staffId) {
+                alert('Vui lòng điền đầy đủ thông tin');
+                return;
             }
 
-            renderTable(); // Vẽ lại bảng
-            closeModal();  // Đóng modal
+            try {
+                const url = editingId ? `/api/properties/${editingId}` : '/api/properties';
+                const method = editingId ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const responseText = await response.text();
+
+                if (!response.ok) {
+                    console.error('Server response:', responseText);
+                    throw new Error('Failed to save property: ' + responseText);
+                }
+
+                alert((editingId ? 'Cập nhật' : 'Thêm') + ' bất động sản thành công');
+                closeModal();
+                loadProperties(); // Tải lại dữ liệu để cập nhật bảng
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Lỗi: ' + error.message);
+            }
         }
 
-        function editProperty(id) {
-            // 1. Tìm bất động sản trong mảng dựa vào ID
-            const property = propertiesData.find(p => p.id === id);
+        async function editProperty(id) {
+            try {
+                const response = await fetch(`/api/properties/${id}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load property details');
+                }
+                const property = await response.json();
 
-            if (!property) return; // Nếu không thấy thì thôi
+                document.getElementById('modalTitle').textContent = 'Sửa Bất Động Sản';
+                document.getElementById('tenBDS').value = property.name;
+                document.getElementById('loaiBDS').value = property.type;
+                document.getElementById('diaChi').value = property.address;
+                document.getElementById('dienTich').value = property.area;
+                document.getElementById('giaThue').value = property.rentalPrice;
+                document.getElementById('trangThai').value = property.status;
 
-            // 2. Đổ dữ liệu vào các ô input (Đây là bước làm dữ liệu hiện ra)
-            document.getElementById('tenBDS').value = property.tenBDS;
-            document.getElementById('loaiBDS').value = property.loaiBDS;
-            document.getElementById('diaChi').value = property.diaChi;
-            document.getElementById('dienTich').value = property.dienTich;
-            document.getElementById('giaThue').value = property.giaThue;
-            document.getElementById('trangThai').value = property.trangThai;
-            document.getElementById('chuSoHuu').value = property.chuSoHuu;
+                // Nếu owner tồn tại thì gán ID, không thì để trống
+                document.getElementById('chuSoHuu').value = property.owner ? property.owner.id : '';
 
-            // 3. Đánh dấu là đang sửa ID nào (Lưu vào thuộc tính data-id của form)
-            document.getElementById('propertyForm').dataset.editingId = id;
+                // Nếu staff tồn tại thì gán ID, không thì để trống
+                document.getElementById('nhanVienQuanLy').value = property.staff ? property.staff.id : '';
 
-            // 4. Mở Modal và đổi tiêu đề
-            document.getElementById('modalTitle').textContent = 'Sửa Bất Động Sản';
-            document.getElementById('propertyModal').style.display = 'block';
+                // Đánh dấu đang sửa
+                document.getElementById('propertyForm').dataset.editingId = id;
+                document.getElementById('propertyModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Lỗi tải chi tiết bất động sản: ' + error.message);
+                return;
+            }
         }
 
-        function deleteProperty(id) {
+        async function deleteProperty(id) {
             if (confirm('Bạn có chắc muốn xóa?')) {
-                propertiesData = propertiesData.filter(p => p.id !== id);
-                renderTable();
+                try {
+                    const response = await fetch(`/api/properties/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        throw new Error('Failed to delete property');
+                    }
+                    alert('Xóa bất động sản thành công');
+                    loadProperties();
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Lỗi: ' + error.message);
+                }
+            } else {
+                return;
             }
         }
 
@@ -362,9 +427,9 @@
             const statusFilter = document.getElementById('filterStatus').value;
 
             const filtered = propertiesData.filter(p => {
-                const matchesSearch = p.tenBDS.toLowerCase().includes(searchText) ||
-                    p.diaChi.toLowerCase().includes(searchText);
-                const matchesStatus = statusFilter === '' || p.trangThai === statusFilter;
+                const matchesSearch = p.name.toLowerCase().includes(searchText) ||
+                    p.address.toLowerCase().includes(searchText);
+                const matchesStatus = statusFilter === '' || p.status === statusFilter;
                 return matchesSearch && matchesStatus;
             });
 
@@ -377,13 +442,14 @@
             tbody.innerHTML = filtered.map(p => `
                 <tr>
                     <td>#${p.id}</td>
-                    <td>${p.tenBDS}</td>
-                    <td>${p.loaiBDS}</td>
-                    <td>${p.diaChi}</td>
-                    <td>${p.dienTich}</td>
-                    <td>$${p.giaThue}</td>
-                    <td><span class="badge ${getStatusClass(p.trangThai)}">${p.trangThai}</span></td>
-                    <td>${p.chuSoHuu}</td>
+                    <td>${p.name}</td>
+                    <td>${p.type}</td>
+                    <td>${p.address}</td>
+                    <td>${p.area}</td>
+                    <td>$${p.rentalPrice}</td>
+                    <td><span class="badge ${getStatusClass(p.status)}">${p.status}</span></td>
+                    <td>${p.owner ? p.owner.fullName : 'N/A'}</td>
+                    <td>${p.staff ? p.staff.fullName : 'N/A'}</td>
                     <td>
                         <button class="btn-small" onclick="editProperty(${p.id})">Sửa</button>
                         <button class="btn-small btn-danger" onclick="deleteProperty(${p.id})">Xóa</button>
@@ -391,6 +457,7 @@
                 </tr>
             `).join('');
         }
+        document.querySelector('#searchInput').addEventListener('keyup',filterTable);
 
         window.addEventListener('click', function(event) {
             const modal = document.getElementById('propertyModal');

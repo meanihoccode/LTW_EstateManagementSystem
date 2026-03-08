@@ -6,6 +6,7 @@
     <title>Quản lý Thanh Toán - Meani Real Estate</title>
     <link rel="stylesheet" href="/css/dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/js/darkmode.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -123,12 +124,13 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Số tiền ($):</label>
+                        <label>Số tiền (đ):</label>
                         <input type="number" id="soTien" required>
                     </div>
                     <div class="form-group">
                         <label>Phương thức:</label>
                         <select id="phuongThuc" required>
+                            <option>-- Chon phương thức --</option>
                             <option>Chuyển khoản</option>
                             <option>Tiền mặt</option>
                             <option>Séc</option>
@@ -140,6 +142,7 @@
                     <div class="form-group full">
                         <label>Trạng thái:</label>
                         <select id="trangThai" required>
+                            <option>-- Chọn trạng thái --</option>
                             <option>Đã duyệt</option>
                             <option>Chờ duyệt</option>
                             <option>Từ chối</option>
@@ -163,45 +166,43 @@
             setupEventListeners();
         });
 
-        function loadPayments() {
-            paymentsData = [
-                {
-                    id: 1,
-                    hopDong: 'HĐ-001',
-                    ngayThanhToan: '2026-01-25',
-                    soTien: 1200,
-                    phuongThuc: 'Chuyển khoản',
-                    trangThai: 'Đã duyệt'
-                },
-                {
-                    id: 2,
-                    hopDong: 'HĐ-002',
-                    ngayThanhToan: '2026-01-25',
-                    soTien: 950,
-                    phuongThuc: 'Chuyển khoản',
-                    trangThai: 'Đã duyệt'
-                },
-                {
-                    id: 3,
-                    hopDong: 'HĐ-003',
-                    ngayThanhToan: '2026-01-25',
-                    soTien: 1500,
-                    phuongThuc: 'Tiền mặt',
-                    trangThai: 'Chờ duyệt'
+        async function loadPayments() {
+            try {
+                const response = await fetch('/api/payments');
+                if (!response.ok) {
+                    throw new Error('Failed to load payments');
                 }
-            ];
-            renderTable();
+                paymentsData = await response.json();
+                renderTable();
+            } catch (error) {
+                console.error('Error: ',error);
+                alert('Lỗi khi tải dữ liệu thanh toán. Vui lòng thử lại sau.');
+                paymentsData=[];
+                renderTable();
+            }
         }
 
-        function loadContracts() {
+        async function loadContracts() {
             const select = document.getElementById('hopDong');
-            const contracts = ['HĐ-001', 'HĐ-002', 'HĐ-003', 'HĐ-004', 'HĐ-005'];
-            contracts.forEach(contract => {
-                const option = document.createElement('option');
-                option.value = contract;
-                option.textContent = contract;
-                select.appendChild(option);
-            });
+            try {
+                const response = await fetch('/api/contracts');
+                if (!response.ok) {
+                    throw new Error('Failed to load contracts');
+                }
+                const contracts = await response.json();
+                while (select.length > 1) {
+                    select.remove(1);
+                }
+                contracts.forEach(contract => {
+                    const option = document.createElement('option');
+                    option.value = contract.id;
+                    option.textContent = "Hợp đồng #" + contract.id;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error: ',error);
+                alert('Lỗi khi tải dữ liệu hợp đồng. Vui lòng thử lại sau.');
+            }
         }
 
         function renderTable() {
@@ -214,11 +215,11 @@
             tbody.innerHTML = paymentsData.map(p => `
                 <tr>
                     <td>#${p.id}</td>
-                    <td>${p.hopDong}</td>
-                    <td>${p.ngayThanhToan}</td>
-                    <td>$${p.soTien}</td>
-                    <td>${p.phuongThuc}</td>
-                    <td><span class="badge ${getStatusClass(p.trangThai)}">${p.trangThai}</span></td>
+                    <td>Hợp đồng - ${p.contract.id}</td>
+                    <td>${p.paymentDate}</td>
+                    <td>${p.amount}Đ</td>
+                    <td>${p.method}</td>
+                    <td><span class="badge ${getStatusClass(p.status)}">${p.status}</span></td>
                     <td>
                         <button class="btn-small" onclick="editPayment(${p.id})">Sửa</button>
                         <button class="btn-small btn-danger" onclick="deletePayment(${p.id})">Xóa</button>
@@ -258,58 +259,85 @@
             document.getElementById('paymentModal').style.display = 'none';
         }
 
-        function savePayment(e) {
+        async function savePayment(e) {
             e.preventDefault();
 
             const editingId = document.getElementById('paymentForm').dataset.editingId;
+
             const payment = {
-                id: paymentsData.length + 1,
-                hopDong: document.getElementById('hopDong').value,
-                ngayThanhToan: document.getElementById('ngayThanhToan').value,
-                soTien: document.getElementById('soTien').value,
-                phuongThuc: document.getElementById('phuongThuc').value,
-                trangThai: document.getElementById('trangThai').value
+                contractId: parseInt(document.getElementById('hopDong').value),
+                paymentDate: document.getElementById('ngayThanhToan').value,
+                amount: parseInt(document.getElementById('soTien').value),
+                method: document.getElementById('phuongThuc').value,
+                status: document.getElementById('trangThai').value
             };
-            if (editingId) {
-                const index = paymentsData.findIndex(p => p.id == editingId);
-                if (index !== -1) {
-                    paymentsData[index] = {
-                        id: parseInt(editingId),
-                        ...payment
-                    };
-                }
-                delete document.getElementById('paymentForm').dataset.editingId;
-            } else {
-                const newId = paymentsData.length > 0 ? Math.max(...paymentsData.map(p => p.id)) + 1 : 1;
-                const newPayment = {
-                    id: newId,
-                    ...payment
-                };
-                paymentsData.push(newPayment);
+
+            if (!payment.contractId || !payment.paymentDate || !payment.amount || !payment.method || !payment.status) {
+                alert('Vui lòng điền đầy đủ thông tin.');
+                return;
             }
-            renderTable();
-            closeModal();
+            try {
+                const url = editingId ? '/api/payments/' + editingId : '/api/payments';
+                const method = editingId ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payment)
+                });
+                const savedPayment = await response.json();
+                if (!response.ok) {
+                    console.error('Server error: ', savedPayment);
+                    throw new Error('Failed to save payment');
+                }
+                alert((editingId ? 'Cập nhật' : 'Thêm') + ' thanh toán thành công!');
+                closeModal();
+                loadPayments();
+            } catch (error) {
+                console.error('Error: ',error);
+                alert('Lỗi khi lưu thanh toán. Vui lòng thử lại sau.');
+            }
         }
 
-        function editPayment(id) {
-            const payment = paymentsData.find(p => p.id === id);
-            if (!payment) return;
+        async function editPayment(id) {
+            try {
+                const response = await fetch('/api/payments/' + id);
+                if (!response.ok) {
+                    throw new Error('Failed to load payment details');
+                }
+                const payment = await response.json();
 
-            document.getElementById('hopDong').value = payment.hopDong;
-            document.getElementById('ngayThanhToan').value = payment.ngayThanhToan;
-            document.getElementById('soTien').value = payment.soTien;
-            document.getElementById('phuongThuc').value = payment.phuongThuc;
-            document.getElementById('trangThai').value = payment.trangThai;
+                document.getElementById('hopDong').value = payment.contract.id;
+                document.getElementById('ngayThanhToan').value = payment.paymentDate;
+                document.getElementById('soTien').value = payment.amount;
+                document.getElementById('phuongThuc').value = payment.method;
+                document.getElementById('trangThai').value = payment.status;
 
-            document.getElementById('paymentForm').dataset.editingId = id;
-            document.getElementById('modalTitle').textContent = 'Sửa Thanh Toán';
-            document.getElementById('paymentModal').style.display = 'block';
+                document.getElementById('paymentForm').dataset.editingId = id;
+                document.getElementById('modalTitle').textContent = 'Sửa Thanh Toán';
+                document.getElementById('paymentModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error: ',error);
+                alert('Lỗi khi tải dữ liệu thanh toán. Vui lòng thử lại sau.');
+            }
         }
 
-        function deletePayment(id) {
+        async function deletePayment(id) {
             if (confirm('Bạn có chắc muốn xóa?')) {
-                paymentsData = paymentsData.filter(p => p.id !== id);
-                renderTable();
+                try {
+                    const response = await fetch('/api/payments/' + id, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        throw new Error('Failed to delete payment');
+                    }
+                    alert('Xóa thanh toán thành công!');
+                    loadPayments();
+                } catch (error) {
+                    console.error('Error: ',error);
+                    alert('Lỗi khi xóa thanh toán. Vui lòng thử lại sau.');
+                }
             }
         }
 
@@ -318,8 +346,9 @@
             const statusFilter = document.getElementById('filterStatus').value;
 
             const filtered = paymentsData.filter(p => {
-                const matchesSearch = p.hopDong.toLowerCase().includes(searchText);
-                const matchesStatus = statusFilter === '' || p.trangThai === statusFilter;
+                const matchesSearch = p.id.toString().includes(searchText) ||
+                                    p.contract.id.toString().includes(searchText);
+                const matchesStatus = statusFilter === '' || p.status === statusFilter;
                 return matchesSearch && matchesStatus;
             });
 
@@ -332,11 +361,11 @@
             tbody.innerHTML = filtered.map(p => `
                 <tr>
                     <td>#${p.id}</td>
-                    <td>${p.hopDong}</td>
-                    <td>${p.ngayThanhToan}</td>
-                    <td>$${p.soTien}</td>
-                    <td>${p.phuongThuc}</td>
-                    <td><span class="badge ${getStatusClass(p.trangThai)}">${p.trangThai}</span></td>
+                    <td>Hợp đồng - ${p.contract.id}</td>
+                    <td>${p.paymentDate}</td>
+                    <td>${p.amount}Đ</td>
+                    <td>${p.method}</td>
+                    <td><span class="badge ${getStatusClass(p.status)}">${p.status}</span></td>
                     <td>
                         <button class="btn-small" onclick="editPayment(${p.id})">Sửa</button>
                         <button class="btn-small btn-danger" onclick="deletePayment(${p.id})">Xóa</button>

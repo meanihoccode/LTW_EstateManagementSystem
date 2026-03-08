@@ -1,12 +1,15 @@
 package com.example.ltw_quanlybds.service;
 
+import com.example.ltw_quanlybds.entity.Contract;
 import com.example.ltw_quanlybds.entity.Payment;
 import com.example.ltw_quanlybds.exception.ResourceNotFoundException;
+import com.example.ltw_quanlybds.repository.ContractRepository;
 import com.example.ltw_quanlybds.repository.PaymentRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -15,6 +18,9 @@ import java.util.List;
 public class PaymentService {
     @Autowired
     private PaymentRepository paymentRepository;
+
+    @Autowired
+    private ContractRepository contractRepository;
 
     public List<Payment> getAllPayments()
     {
@@ -38,6 +44,9 @@ public class PaymentService {
     }
 
     public Payment createPayment(Payment payment) {
+        Contract contract =  contractRepository.findById(payment.getContractId())
+                .orElseThrow(() -> new ResourceNotFoundException("Contract not found with id: " + payment.getContractId()));
+        payment.setContract(contract);
         return paymentRepository.save(payment);
     }
 
@@ -48,10 +57,10 @@ public class PaymentService {
     public Payment updatePayment(Integer id, Payment payment) {
         Payment existingPayment = paymentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Payment not found with id: " + id));
+        Contract contract =  contractRepository.findById(payment.getContractId())
+                .orElseThrow(() -> new ResourceNotFoundException("Contract not found with id: " + payment.getContractId()));
+        existingPayment.setContract(contract);
 
-        if (payment.getContract() != null) {
-            existingPayment.setContract(payment.getContract());
-        }
         if (payment.getAmount() != null) {
             existingPayment.setAmount(payment.getAmount());
         }
@@ -66,4 +75,10 @@ public class PaymentService {
         }
         return paymentRepository.save(existingPayment);
     }
+
+    public double getTotalPaymentsThisMonth() {
+        return paymentRepository.calculateTotalPaymentsThisMonth();
+    }
+
+
 }

@@ -41,4 +41,21 @@ public class ContractController {
         contractService.deleteContract(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/totalActiveContracts")
+    public ResponseEntity<Long> getTotalActiveContracts() {
+        long totalActiveContracts = contractService.getTotalActiveContracts();
+        return ResponseEntity.ok(totalActiveContracts);
+    }
+
+    @GetMapping("/revenueThisMonth")
+    public ResponseEntity<Double> getRevenueThisMonth() {
+        Double revenue = contractService.getRevenueThisMonth();
+        return ResponseEntity.ok(revenue);
+    }
+
+    @GetMapping("/revenueByMonth")
+    public ResponseEntity<?> getRevenueByMonth() {
+        return ResponseEntity.ok(contractService.getRevenueByMonth());
+    }
 }

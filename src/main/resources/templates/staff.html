@@ -6,6 +6,7 @@
     <title>Quản lý Nhân Viên - Meani Real Estate</title>
     <link rel="stylesheet" href="/css/dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/js/darkmode.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -138,28 +139,22 @@
             setupEventListeners();
         });
 
-        function loadStaff() {
-            staffData = [
-                {
-                    id: 1,
-                    hoTen: 'Lê Văn X',
-                    soDienThoai: '0901234567',
-                    vaiTro: 'Quản lý'
-                },
-                {
-                    id: 2,
-                    hoTen: 'Hoàng Thị Y',
-                    soDienThoai: '0912345678',
-                    vaiTro: 'Nhân viên kinh doanh'
-                },
-                {
-                    id: 3,
-                    hoTen: 'Đặng Minh Z',
-                    soDienThoai: '0923456789',
-                    vaiTro: 'Nhân viên kinh doanh'
+        async function loadStaff() {
+            try {
+                const response = await fetch('/api/staffs');
+
+                if (!response.ok) {
+                    throw new Error('Failed to load staff');
                 }
-            ];
-            renderTable();
+
+                staffData = await response.json();
+                renderTable();
+            } catch (error) {
+                console.error('Error:',error);
+                alert('Lỗi tải dữ liệu: ' + error.message);
+                staffData = [];
+                renderTable();
+            }
         }
 
         function renderTable() {
@@ -172,9 +167,9 @@
             tbody.innerHTML = staffData.map(s => `
                 <tr>
                     <td>#${s.id}</td>
-                    <td>${s.hoTen}</td>
-                    <td>${s.soDienThoai}</td>
-                    <td>${s.vaiTro}</td>
+                    <td>${s.fullName}</td>
+                    <td>${s.phone}</td>
+                    <td>${s.role}</td>
                     <td>
                         <button class="btn-small" onclick="editStaff(${s.id})">Sửa</button>
                         <button class="btn-small btn-danger" onclick="deleteStaff(${s.id})">Xóa</button>
@@ -203,52 +198,84 @@
             document.getElementById('staffModal').style.display = 'none';
         }
 
-        function saveStaff(e) {
+        async function saveStaff(e) {
             e.preventDefault();
             const editingId = document.getElementById('staffForm').dataset.editingId;
-            const staff = {
-                id: staffData.length + 1,
-                hoTen: document.getElementById('hoTen').value,
-                soDienThoai: document.getElementById('soDienThoai').value,
-                vaiTro: document.getElementById('vaiTro').value
+            const staffData_form = {
+                fullName: document.getElementById('hoTen').value,
+                phone: document.getElementById('soDienThoai').value,
+                role: document.getElementById('vaiTro').value
             };
-            if (editingId) {
-                const index = staffData.findIndex(s => s.id == editingId);
-                if (index !== -1) {
-                    staff.id = parseInt(editingId);
-                    staffData[index] = staff;
-                }
-                delete document.getElementById('staffForm').dataset.editingId;
-            } else {
-                const newId = staffData.length > 0 ? Math.max(...staffData.map(s => s.id)) + 1 : 1;
-                const newStaff = {
-                    id: newId,
-                    hoTen: staff.hoTen,
-                    soDienThoai: staff.soDienThoai,
-                    vaiTro: staff.vaiTro
-                };
-                staffData.push(newStaff);
+
+            if (!staffData_form.fullName || !staffData_form.phone) {
+                alert('Vui lòng điền đầy đủ thông tin');
+                return;
             }
-            renderTable();
-            closeModal();
+
+            try {
+                const url = editingId ? `/api/staffs/${editingId}` : '/api/staffs';
+                const method = editingId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(staffData_form)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to save staff');
+                }
+
+                alert((editingId ? 'Cập nhật' : 'Thêm') + ' nhân viên thành công');
+                closeModal();
+                loadStaff();
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Lỗi: ' + error.message);
+            }
         }
 
-        function editStaff(id) {
-            const staff = staffData.find(s => s.id === id);
-            if (staff) {
+        async function editStaff(id) {
+            try {
+                const response = await fetch(`/api/staffs/${id}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load staff details');
+                }
+                const staff = await response.json();
+
                 document.getElementById('modalTitle').textContent = 'Sửa Nhân Viên';
-                document.getElementById('hoTen').value = staff.hoTen;
-                document.getElementById('soDienThoai').value = staff.soDienThoai;
-                document.getElementById('vaiTro').value = staff.vaiTro;
+                document.getElementById('hoTen').value = staff.fullName;
+                document.getElementById('soDienThoai').value = staff.phone;
+                document.getElementById('vaiTro').value = staff.role;
                 document.getElementById('staffForm').dataset.editingId = id;
                 document.getElementById('staffModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Lỗi tải thông tin nhân viên: ' + error.message);
             }
         }
 
-        function deleteStaff(id) {
-            if (confirm('Bạn có chắc muốn xóa?')) {
-                staffData = staffData.filter(s => s.id !== id);
-                renderTable();
+        async function deleteStaff(id) {
+            if (!confirm('Bạn có chắc muốn xóa?')) {
+                return;
+            }
+            try {
+                const response = await fetch(`/api/staffs/${id}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to delete staff');
+                }
+
+                alert('Xóa nhân viên thành công');
+                loadStaff();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Lỗi: ' + error.message);
             }
         }
 
@@ -256,8 +283,9 @@
             const searchText = document.getElementById('searchInput').value.toLowerCase();
 
             const filtered = staffData.filter(s => {
-                return s.hoTen.toLowerCase().includes(searchText) ||
-                    s.vaiTro.toLowerCase().includes(searchText);
+                return (s.fullName && s.fullName.toLowerCase().includes(searchText)) ||
+                    (s.role && s.role.toLowerCase().includes(searchText))
+                    || (s.phone && s.phone.includes(searchText));
             });
 
             const tbody = document.getElementById('staffTable');
@@ -269,9 +297,9 @@
             tbody.innerHTML = filtered.map(s => `
                 <tr>
                     <td>#${s.id}</td>
-                    <td>${s.hoTen}</td>
-                    <td>${s.soDienThoai}</td>
-                    <td>${s.vaiTro}</td>
+                    <td>${s.fullName}</td>
+                    <td>${s.phone}</td>
+                    <td>${s.role}</td>
                     <td>
                         <button class="btn-small" onclick="editStaff(${s.id})">Sửa</button>
                         <button class="btn-small btn-danger" onclick="deleteStaff(${s.id})">Xóa</button>
@@ -279,6 +307,8 @@
                 </tr>
             `).join('');
         }
+
+        document.querySelector('#searchInput').addEventListener('keyup',filterTable);
 
         window.addEventListener('click', function(event) {
             const modal = document.getElementById('staffModal');
