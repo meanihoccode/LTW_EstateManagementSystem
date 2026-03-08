@@ -1,13 +1,46 @@
 const tongBDS = document.querySelector('#totalProperties')
 
 document.addEventListener('DOMContentLoaded', function() {
+    fetchRole();
     fetchTotalProperties();
     fetchActiveContracts();
     fetchEmptyProperties();
     fetchRevenueThisMonth();
     loadRevenueChart();
+    fetchExpiringContracts();
+    fetchRecentPayments();
 });
 
+const roleElement = document.querySelector('.user');
+async function fetchRole() {
+    try {
+        const username = localStorage.getItem('username');
+        if (!username) {
+            console.warn('No username found in localStorage');
+            return;
+        }
+
+        // Lấy tất cả nhân viên để tìm role của người dùng hiện tại
+        const response = await fetch('/api/staffs');
+        if (!response.ok) {
+            throw new Error('Failed to load staff');
+        }
+
+        const staffs = await response.json();
+        const currentUser = staffs.find(staff => {
+            if (staff.account && staff.account.username === username) {
+                return true;
+            }
+            return false;
+        });
+
+        if (currentUser && roleElement) {
+            roleElement.textContent = `👤 ${currentUser.role}`;
+        }
+    } catch (error) {
+        console.error('Error loading role:', error);
+    }
+}
 async function fetchTotalProperties() {
     try {
         const response = await fetch('api/properties/total');
@@ -184,6 +217,81 @@ async function loadRevenueChart() {
         });
     } catch (error) {
         console.error('Error loading revenue chart:', error);
+    }
+}
+
+// ===== HỢP ĐỒNG SẮP KẾT THÚC =====
+async function fetchExpiringContracts() {
+    try {
+        const response = await fetch('/api/contracts/expiringContracts');
+        if (!response.ok) {
+            throw new Error('Failed to load expiring contracts');
+        }
+
+        const contracts = await response.json();
+        const tbody = document.getElementById('expiringContractsTable');
+
+        if (!tbody) return;
+
+        if (contracts.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Không có hợp đồng sắp kết thúc</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = contracts.map(contract => {
+            const endDate = new Date(contract.endDate).toLocaleDateString('vi-VN');
+            const propertyName = contract.property ? contract.property.name : 'N/A';
+            const tenantName = contract.tenant ? contract.tenant.fullName : 'N/A';
+
+            return `
+                <tr>
+                    <td>${contract.id}</td>
+                    <td>${propertyName}</td>
+                    <td>${tenantName}</td>
+                    <td>${endDate}</td>
+                    <td>${contract.status || 'N/A'}</td>
+                </tr>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error loading expiring contracts:', error);
+    }
+}
+
+// ===== THANH TOÁN GẦN ĐÂY =====
+async function fetchRecentPayments() {
+    try {
+        const response = await fetch('/api/payments/recent');
+        if (!response.ok) {
+            throw new Error('Failed to load recent payments');
+        }
+
+        const payments = await response.json();
+        const tbody = document.getElementById('recentPaymentsTable');
+
+        if (!tbody) return;
+
+        if (payments.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Không có thanh toán nào</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = payments.map(payment => {
+            const paymentDate = new Date(payment[2]).toLocaleDateString('vi-VN');
+            const amount = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(payment[3]);
+
+            return `
+                <tr>
+                    <td>${payment[0]}</td>
+                    <td>HD #${payment[1]}</td>
+                    <td>${amount}</td>
+                    <td>${paymentDate}</td>
+                    <td>${payment[4] || 'N/A'}</td>
+                </tr>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error loading recent payments:', error);
     }
 }
 

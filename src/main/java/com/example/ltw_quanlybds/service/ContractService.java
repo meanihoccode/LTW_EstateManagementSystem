@@ -104,4 +104,14 @@ public class ContractService {
     public List<Object[]> getRevenueByMonth() {
         return paymentRepository.getRevenueByMonth();
     }
+
+    public List<Contract> getExpiringContracts() {
+        // Lấy hợp đồng kết thúc trong 30 ngày tới
+        return contractRepository.findExpiringContracts();
+    }
+
+    public List<Object[]> getRecentPayments() {
+        // Lấy 10 thanh toán gần đây nhất
+        return paymentRepository.findRecentPayments();
+    }
 }

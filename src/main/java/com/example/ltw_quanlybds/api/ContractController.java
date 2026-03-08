@@ -58,4 +58,9 @@ public class ContractController {
     public ResponseEntity<?> getRevenueByMonth() {
         return ResponseEntity.ok(contractService.getRevenueByMonth());
     }
+
+    @GetMapping("/expiringContracts")
+    public ResponseEntity<?> getExpiringContracts() {
+        return ResponseEntity.ok(contractService.getExpiringContracts());
+    }
 }
