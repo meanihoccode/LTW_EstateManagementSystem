@@ -25,4 +25,11 @@ public interface PaymentRepository extends JpaRepository<Payment,Integer> {
             "GROUP BY YEAR(ngay_thanh_toan), MONTH(ngay_thanh_toan) " +
             "ORDER BY YEAR(ngay_thanh_toan) ASC, MONTH(ngay_thanh_toan) ASC", nativeQuery = true)
     List<Object[]> getRevenueByMonth();
+
+    // Lấy 10 thanh toán gần đây nhất
+    @Query(value = "SELECT p.thanh_toan_id, p.hop_dong_id, p.ngay_thanh_toan, p.so_tien, p.trang_thai " +
+            "FROM thanhtoan p " +
+            "ORDER BY p.ngay_thanh_toan DESC " +
+            "LIMIT 10", nativeQuery = true)
+    List<Object[]> findRecentPayments();
 }

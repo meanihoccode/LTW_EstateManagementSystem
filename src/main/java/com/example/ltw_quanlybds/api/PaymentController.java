@@ -48,4 +48,9 @@ public class PaymentController {
         paymentService.deletePaymentById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/recent")
+    public ResponseEntity<?> getRecentPayments() {
+        return ResponseEntity.ok(paymentService.getRecentPayments());
+    }
 }
