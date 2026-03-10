@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -42,11 +42,11 @@
                     <span class="icon">👤</span>
                     <span>Chủ sở hữu</span>
                 </a>
-                <a href="/staff" class="nav-item">
+                <a href="/staff" class="nav-item" sec:authorize="hasRole('Admin')">
                     <span class="icon">👨‍💼</span>
                     <span>Nhân viên</span>
                 </a>
-                <a href="/accounts" class="nav-item">
+                <a href="/accounts" class="nav-item" sec:authorize="hasRole('Admin')">
                     <span class="icon">🔐‍</span>
                     <span>Tài khoản</span>
                 </a>
@@ -133,11 +133,25 @@
 
     <script>
         let tenantsData = [];
+        let userRole = '';
 
         document.addEventListener('DOMContentLoaded', function() {
-            loadTenants();
-            setupEventListeners();
+            fetchUserRole().then(() => {
+                loadTenants();
+                setupEventListeners();
+            });
         });
+
+        async function fetchUserRole() {
+            try {
+                const response = await fetch('/api/me/role');
+                if (!response.ok) return;
+                const data = await response.json();
+                userRole = data.role || '';
+            } catch (error) {
+                console.error('Error fetching user role:', error);
+            }
+        }
 
         async function loadTenants() {
             try {
@@ -163,28 +177,32 @@
                 return;
             }
 
-            tbody.innerHTML = tenantsData.map(t => `
-                <tr>
-                    <td>#${t.id}</td>
-                    <td>${t.fullName}</td>
-                    <td>${t.idNumber}</td>
-                    <td>${t.phone}</td>
-                    <td>${t.email}</td>
-                    <td>
-                        <button class="btn-small" onclick="editTenant(${t.id})">Sửa</button>
-                        <button class="btn-small btn-danger" onclick="deleteTenant(${t.id})">Xóa</button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = tenantsData.map(t => {
+                // Nhân viên không thấy nút xóa
+                let actions = `<button class="btn-small" onclick="editTenant(${t.id})">Sửa</button>`;
+                if (userRole !== 'Nhân viên') {
+                    actions += `<button class="btn-small btn-danger" onclick="deleteTenant(${t.id})">Xóa</button>`;
+                }
+
+                return `
+                    <tr>
+                        <td>#${t.id}</td>
+                        <td>${t.fullName}</td>
+                        <td>${t.idNumber}</td>
+                        <td>${t.phone}</td>
+                        <td>${t.email}</td>
+                        <td>${actions}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         function setupEventListeners() {
-            document.getElementById('addTenantBtn').addEventListener('click', openModal);
-            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-            document.getElementById('cancelBtn').addEventListener('click', closeModal);
-            document.getElementById('tenantForm').addEventListener('submit', saveTenant);
-
-            document.getElementById('searchInput').addEventListener('keyup', filterTable);
+            document.getElementById('addTenantBtn')?.addEventListener('click', openModal);
+            document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+            document.getElementById('cancelBtn')?.addEventListener('click', closeModal);
+            document.getElementById('tenantForm')?.addEventListener('submit', saveTenant);
+            document.getElementById('searchInput')?.addEventListener('keyup', filterTable);
         }
 
         function openModal() {
@@ -287,19 +305,24 @@
                 return;
             }
 
-            tbody.innerHTML = filtered.map(t => `
-                <tr>
-                    <td>#${t.id}</td>
-                    <td>${t.fullName}</td>
-                    <td>${t.idNumber}</td>
-                    <td>${t.phone}</td>
-                    <td>${t.email}</td>
-                    <td>
-                        <button class="btn-small" onclick="editTenant(${t.id})">Sửa</button>
-                        <button class="btn-small btn-danger" onclick="deleteTenant(${t.id})">Xóa</button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = filtered.map(t => {
+                // Nhân viên không thấy nút xóa
+                let actions = `<button class="btn-small" onclick="editTenant(${t.id})">Sửa</button>`;
+                if (userRole !== 'Nhân viên') {
+                    actions += `<button class="btn-small btn-danger" onclick="deleteTenant(${t.id})">Xóa</button>`;
+                }
+
+                return `
+                    <tr>
+                        <td>#${t.id}</td>
+                        <td>${t.fullName}</td>
+                        <td>${t.idNumber}</td>
+                        <td>${t.phone}</td>
+                        <td>${t.email}</td>
+                        <td>${actions}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         document.querySelector('#searchInput').addEventListener('keyup',filterTable);

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -42,11 +42,11 @@
                     <span class="icon">👤</span>
                     <span>Chủ sở hữu</span>
                 </a>
-                <a href="/staff" class="nav-item">
+                <a href="/staff" class="nav-item" sec:authorize="hasRole('Admin')">
                     <span class="icon">👨‍💼</span>
                     <span>Nhân viên</span>
                 </a>
-                <a href="/accounts" class="nav-item">
+                <a href="/accounts" class="nav-item" sec:authorize="hasRole('Admin')">
                     <span class="icon">🔐‍</span>
                     <span>Tài khoản</span>
                 </a>
@@ -59,7 +59,7 @@
             <div class="top-bar">
                 <h1>Quản lý Bất Động Sản</h1>
                 <div class="user-section">
-                    <button class="btn-primary" id="addPropertyBtn">+ Thêm BĐS</button>
+                    <button class="btn-primary" id="addPropertyBtn" sec:authorize="hasAnyRole('Admin', 'Quản lý')">+ Thêm BĐS</button>
                     <a href="/" class="btn-logout">Đăng xuất</a>
                 </div>
             </div>
@@ -90,7 +90,7 @@
                                 <th>Giá thuê</th>
                                 <th>Trạng thái</th>
                                 <th>Chủ sở hữu</th>
-                                <th>NV quản lý</th>
+                                <th sec:authorize="hasAnyRole('Admin','Quản lý')">NV quản lý</th>
                                 <th>Thao tác</th>
                             </tr>
                         </thead>
@@ -160,10 +160,10 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="form-row" id="staffRow">
                     <div class="form-group full">
                         <label>Nhân viên quản lý:</label>
-                        <select id="nhanVienQuanLy" required>
+                        <select id="nhanVienQuanLy">
                             <option value="">-- Chọn nhân viên --</option>
                         </select>
                     </div>
@@ -178,13 +178,29 @@
 
     <script>
         let propertiesData = [];
+        let userRole = '';
+        let myStaffId = null;
 
         document.addEventListener('DOMContentLoaded', function() {
-            loadProperties();
-            loadOwners();
-            loadStaffs();
-            setupEventListeners();
+            fetchUserRole().then(() => {
+                loadProperties();
+                loadOwners();
+                loadStaffs();
+                setupEventListeners();
+            });
         });
+
+        async function fetchUserRole() {
+            try {
+                const response = await fetch('/api/me/role');
+                if (!response.ok) return;
+                const data = await response.json();
+                userRole = data.role || '';
+                myStaffId = data.staffId || null;
+            } catch (error) {
+                console.error('Error fetching user role:', error);
+            }
+        }
 
         async function loadProperties() {
             try {
@@ -254,35 +270,48 @@
                 });
             } catch (error) {
                 console.error('Error:', error);
-                alert('Lỗi tải nhân viên: ' + error.message);
+                if(userRole!=='Nhân viên') alert('Lỗi tải nhân viên: ' + error.message);
                 return;
             }
+        }
+
+        function buildActions(p) {
+            if (userRole !== 'Nhân viên') {
+                // Admin/Quản lý thấy đủ nút
+                return `<button class="btn-small" onclick="editProperty(${p.id})">Sửa</button>
+                        <button class="btn-small btn-danger" onclick="deleteProperty(${p.id})">Xóa</button>`;
+            }
+            // Nhân viên: chỉ thấy nút Sửa nếu BĐS do mình quản lý
+            if (p.staff && p.staff.id === myStaffId) {
+                return `<button class="btn-small" onclick="editProperty(${p.id})">Sửa</button>`;
+            }
+            return ''; // BĐS của người khác → không có nút nào
         }
 
         function renderTable() {
             const tbody = document.getElementById('propertiesTable');
             if (propertiesData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">Không có dữ liệu</td></tr>';
+                const colspan = userRole === 'Nhân viên' ? 9 : 10;
+                tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center; color: #999;">Không có dữ liệu</td></tr>`;
                 return;
             }
-
-            tbody.innerHTML = propertiesData.map(p => `
-                <tr>
-                    <td>#${p.id}</td>
-                    <td>${p.name}</td>
-                    <td>${p.type}</td>
-                    <td>${p.address}</td>
-                    <td>${p.area}</td>
-                    <td>${p.rentalPrice}Đ</td>
-                    <td><span class="badge ${getStatusClass(p.status)}">${p.status}</span></td>
-                    <td>${p.owner ? p.owner.fullName : 'N/A'}</td>
-                    <td>${p.staff ? p.staff.fullName : 'N/A'}</td>
-                    <td>
-                        <button class="btn-small" onclick="editProperty(${p.id})">Sửa</button>
-                        <button class="btn-small btn-danger" onclick="deleteProperty(${p.id})">Xóa</button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = propertiesData.map(p => {
+                const staffColumn = userRole === 'Nhân viên' ? '' : `<td>${p.staff ? p.staff.fullName : 'N/A'}</td>`;
+                return `
+                    <tr>
+                        <td>#${p.id}</td>
+                        <td>${p.name}</td>
+                        <td>${p.type}</td>
+                        <td>${p.address}</td>
+                        <td>${p.area}</td>
+                        <td>${p.rentalPrice}Đ</td>
+                        <td><span class="badge ${getStatusClass(p.status)}">${p.status}</span></td>
+                        <td>${p.owner ? p.owner.fullName : 'N/A'}</td>
+                        ${staffColumn}
+                        <td>${buildActions(p)}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         function getStatusClass(status) {
@@ -295,36 +324,54 @@
         }
 
         function setupEventListeners() {
-            document.getElementById('addPropertyBtn').addEventListener('click', openModal);
-            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-            document.getElementById('cancelBtn').addEventListener('click', closeModal);
-            document.getElementById('propertyForm').addEventListener('submit', saveProperty);
+            // Dùng ?. để tránh crash khi nút bị ẩn bởi sec:authorize
+            document.getElementById('addPropertyBtn')?.addEventListener('click', openModal);
+            document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+            document.getElementById('cancelBtn')?.addEventListener('click', closeModal);
+            document.getElementById('propertyForm')?.addEventListener('submit', saveProperty);
 
-            document.getElementById('searchInput').addEventListener('keyup', filterTable);
-            document.getElementById('filterStatus').addEventListener('change', filterTable);
+            document.getElementById('searchInput')?.addEventListener('keyup', filterTable);
+            document.getElementById('filterStatus')?.addEventListener('change', filterTable);
         }
 
         function openModal() {
+            if (userRole === 'Nhân viên') {
+                alert('Bạn không có quyền thêm mới bất động sản');
+                return;
+            }
             document.getElementById('modalTitle').textContent = 'Thêm Bất Động Sản';
             document.getElementById('propertyForm').reset();
-
-            // QUAN TRỌNG: Xóa editingId để máy biết đây là thêm mới, không phải sửa
             delete document.getElementById('propertyForm').dataset.editingId;
-
+            // Admin/Quản lý mới thấy phần chọn nhân viên
+            document.getElementById('staffRow').style.display = '';
             document.getElementById('propertyModal').style.display = 'block';
         }
 
         function closeModal() {
-            document.getElementById('propertyModal').style.display = 'none';
+            const modal = document.getElementById('propertyModal');
+            if (modal) {
+                modal.style.display = 'none';
+                console.log('Modal đã đóng');
+            }
         }
+
+        // Đóng modal khi click ngoài nội dung
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('propertyModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
 
         async function saveProperty(e) {
             e.preventDefault();
-
-            // Lấy ID đang sửa (nếu có)
             const editingId = document.getElementById('propertyForm').dataset.editingId;
 
-            // Lấy dữ liệu từ form
+            // Nhân viên tự dùng staffId của mình, không cho chọn
+            const staffIdValue = userRole === 'Nhân viên'
+                ? myStaffId
+                : parseInt(document.getElementById('nhanVienQuanLy').value);
+
             const formData = {
                 name: document.getElementById('tenBDS').value,
                 type: document.getElementById('loaiBDS').value,
@@ -333,10 +380,9 @@
                 rentalPrice: parseFloat(document.getElementById('giaThue').value),
                 status: document.getElementById('trangThai').value,
                 ownerId: parseInt(document.getElementById('chuSoHuu').value),
-                staffId: parseInt(document.getElementById('nhanVienQuanLy').value) // Thêm staffId
+                staffId: staffIdValue
             };
 
-            // Kiểm tra required fields
             if (!formData.name || !formData.address || !formData.ownerId || !formData.type ||
                 !formData.area || !formData.rentalPrice || !formData.status || !formData.staffId) {
                 alert('Vui lòng điền đầy đủ thông tin');
@@ -348,22 +394,16 @@
                 const method = editingId ? 'PUT' : 'POST';
                 const response = await fetch(url, {
                     method: method,
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(formData)
                 });
 
                 const responseText = await response.text();
-
-                if (!response.ok) {
-                    console.error('Server response:', responseText);
-                    throw new Error('Failed to save property: ' + responseText);
-                }
+                if (!response.ok) throw new Error('Failed to save property: ' + responseText);
 
                 alert((editingId ? 'Cập nhật' : 'Thêm') + ' bất động sản thành công');
                 closeModal();
-                loadProperties(); // Tải lại dữ liệu để cập nhật bảng
+                loadProperties();
             } catch (error) {
                 console.error('Error:', error);
                 alert('Lỗi: ' + error.message);
@@ -371,11 +411,18 @@
         }
 
         async function editProperty(id) {
+            // Guard: Nhân viên chỉ sửa BĐS do mình quản lý
+            if (userRole === 'Nhân viên') {
+                const p = propertiesData.find(x => x.id === id);
+                if (!p || !p.staff || p.staff.id !== myStaffId) {
+                    alert('Bạn chỉ có thể sửa BĐS do mình quản lý');
+                    return;
+                }
+            }
+
             try {
                 const response = await fetch(`/api/properties/${id}`);
-                if (!response.ok) {
-                    throw new Error('Failed to load property details');
-                }
+                if (!response.ok) throw new Error('Failed to load property details');
                 const property = await response.json();
 
                 document.getElementById('modalTitle').textContent = 'Sửa Bất Động Sản';
@@ -385,20 +432,22 @@
                 document.getElementById('dienTich').value = property.area;
                 document.getElementById('giaThue').value = property.rentalPrice;
                 document.getElementById('trangThai').value = property.status;
-
-                // Nếu owner tồn tại thì gán ID, không thì để trống
                 document.getElementById('chuSoHuu').value = property.owner ? property.owner.id : '';
 
-                // Nếu staff tồn tại thì gán ID, không thì để trống
-                document.getElementById('nhanVienQuanLy').value = property.staff ? property.staff.id : '';
+                if (userRole === 'Nhân viên') {
+                    // Ẩn phần chọn nhân viên, tự gán chính mình
+                    document.getElementById('staffRow').style.display = 'none';
+                    document.getElementById('nhanVienQuanLy').value = myStaffId;
+                } else {
+                    document.getElementById('staffRow').style.display = '';
+                    document.getElementById('nhanVienQuanLy').value = property.staff ? property.staff.id : '';
+                }
 
-                // Đánh dấu đang sửa
                 document.getElementById('propertyForm').dataset.editingId = id;
                 document.getElementById('propertyModal').style.display = 'block';
             } catch (error) {
                 console.error('Error:', error);
                 alert('Lỗi tải chi tiết bất động sản: ' + error.message);
-                return;
             }
         }
 
@@ -425,37 +474,34 @@
         function filterTable() {
             const searchText = document.getElementById('searchInput').value.toLowerCase();
             const statusFilter = document.getElementById('filterStatus').value;
-
             const filtered = propertiesData.filter(p => {
-                const matchesSearch = p.name.toLowerCase().includes(searchText) ||
-                    p.address.toLowerCase().includes(searchText);
+                const matchesSearch = p.name.toLowerCase().includes(searchText) || p.address.toLowerCase().includes(searchText);
                 const matchesStatus = statusFilter === '' || p.status === statusFilter;
                 return matchesSearch && matchesStatus;
             });
-
             const tbody = document.getElementById('propertiesTable');
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">Không tìm thấy kết quả</td></tr>';
+                const colspan = userRole === 'Nhân viên' ? 9 : 10;
+                tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center; color: #999;">Không tìm thấy kết quả</td></tr>`;
                 return;
             }
-
-            tbody.innerHTML = filtered.map(p => `
-                <tr>
-                    <td>#${p.id}</td>
-                    <td>${p.name}</td>
-                    <td>${p.type}</td>
-                    <td>${p.address}</td>
-                    <td>${p.area}</td>
-                    <td>$${p.rentalPrice}</td>
-                    <td><span class="badge ${getStatusClass(p.status)}">${p.status}</span></td>
-                    <td>${p.owner ? p.owner.fullName : 'N/A'}</td>
-                    <td>${p.staff ? p.staff.fullName : 'N/A'}</td>
-                    <td>
-                        <button class="btn-small" onclick="editProperty(${p.id})">Sửa</button>
-                        <button class="btn-small btn-danger" onclick="deleteProperty(${p.id})">Xóa</button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = filtered.map(p => {
+                const staffColumn = userRole === 'Nhân viên' ? '' : `<td>${p.staff ? p.staff.fullName : 'N/A'}</td>`;
+                return `
+                    <tr>
+                        <td>#${p.id}</td>
+                        <td>${p.name}</td>
+                        <td>${p.type}</td>
+                        <td>${p.address}</td>
+                        <td>${p.area}</td>
+                        <td>${p.rentalPrice}Đ</td>
+                        <td><span class="badge ${getStatusClass(p.status)}">${p.status}</span></td>
+                        <td>${p.owner ? p.owner.fullName : 'N/A'}</td>
+                        ${staffColumn}
+                        <td>${buildActions(p)}</td>
+                    </tr>
+                `;
+            }).join('');
         }
         document.querySelector('#searchInput').addEventListener('keyup',filterTable);
 

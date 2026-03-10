@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,16 +10,6 @@
     <script src="/js/darkmode.js"></script>
 </head>
 <body>
-    <script>
-        // Kiểm tra user đã đăng nhập chưa
-        checkAuthStatus();
-
-        // Lấy thông tin user
-        const username = localStorage.getItem('username');
-        const role = localStorage.getItem('userRole');
-
-        console.log('Logged in as:', username, role);
-    </script>
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -53,12 +43,14 @@
                     <span class="icon">👤</span>
                     <span>Chủ sở hữu</span>
                 </a>
-                <a href="/staff" class="nav-item">
+
+                <!-- Chỉ Admin mới thấy -->
+                <a href="/staff" class="nav-item" sec:authorize="hasRole('Admin')">
                     <span class="icon">👨‍💼</span>
                     <span>Nhân viên</span>
                 </a>
-                <a href="/accounts" class="nav-item">
-                    <span class="icon">👨‍</span>
+                <a href="/accounts" class="nav-item" sec:authorize="hasRole('Admin')">
+                    <span class="icon">🔑</span>
                     <span>Tài khoản</span>
                 </a>
             </nav>
@@ -71,8 +63,8 @@
                 <h1>Dashboard</h1>
                 <div class="user-section">
                     <button id="darkModeToggle" class="btn-dark-mode" title="Bật/Tắt chế độ tối">🌙</button>
-                    <span class="user">👤 Manager</span>
-                    <a href="/" onclick="handleLogout()" class="btn-logout">Đăng xuất</a>
+                    <span class="user">👤 <span sec:authentication="name">User</span></span>
+                    <a href="/logout" class="btn-logout">Đăng xuất</a>
                 </div>
             </div>
 
