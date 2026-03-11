@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -42,11 +42,10 @@
                     <span class="icon">👤</span>
                     <span>Chủ sở hữu</span>
                 </a>
-                <a href="/staff" class="nav-item">
-                    <span class="icon">👨‍💼</span>
+                <a href="/staff" class="nav-item" sec:authorize="hasAnyRole('Admin', 'Quản lý')">                    <span class="icon">👨‍💼</span>
                     <span>Nhân viên</span>
                 </a>
-                <a href="/accounts" class="nav-item">
+                <a href="/accounts" class="nav-item" sec:authorize="hasRole('Admin')">
                     <span class="icon">🔐‍</span>
                     <span>Tài khoản</span>
                 </a>
@@ -59,7 +58,7 @@
             <div class="top-bar">
                 <h1>Quản lý Chủ Sở Hữu</h1>
                 <div class="user-section">
-                    <button class="btn-primary" id="addOwnerBtn">+ Thêm Chủ Sở Hữu</button>
+                    <button class="btn-primary" id="addOwnerBtn" sec:authorize="hasAnyRole('Admin', 'Quản lý')">+ Thêm Chủ Sở Hữu</button>
                     <a href="/" class="btn-logout">Đăng xuất</a>
                 </div>
             </div>
@@ -133,11 +132,25 @@
 
     <script>
         let ownersData = [];
+        let userRole = '';
 
         document.addEventListener('DOMContentLoaded', function() {
-            loadOwners();
-            setupEventListeners();
+            fetchUserRole().then(() => {
+                loadOwners();
+                setupEventListeners();
+            });
         });
+
+        async function fetchUserRole() {
+            try {
+                const response = await fetch('/api/me/role');
+                if (!response.ok) return;
+                const data = await response.json();
+                userRole = data.role || '';
+            } catch (error) {
+                console.error('Error fetching user role:', error);
+            }
+        }
 
         async function loadOwners() {
             try {
@@ -162,28 +175,33 @@
                 return;
             }
 
-            tbody.innerHTML = ownersData.map(o => `
-                <tr>
-                    <td>#${o.id}</td>
-                    <td>${o.fullName}</td>
-                    <td>${o.phone}</td>
-                    <td>${o.email}</td>
-                    <td>${o.address}</td>
-                    <td>
-                        <button class="btn-small" onclick="editOwner(${o.id})">Sửa</button>
-                        <button class="btn-small btn-danger" onclick="deleteOwner(${o.id})">Xóa</button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = ownersData.map(o => {
+                // Nhân viên không thấy bất cứ nút nào
+                let actions = '';
+                if (userRole !== 'Nhân viên') {
+                    actions = `<button class="btn-small" onclick="editOwner(${o.id})">Sửa</button>`;
+                    actions += `<button class="btn-small btn-danger" onclick="deleteOwner(${o.id})">Xóa</button>`;
+                }
+
+                return `
+                    <tr>
+                        <td>#${o.id}</td>
+                        <td>${o.fullName}</td>
+                        <td>${o.phone}</td>
+                        <td>${o.email}</td>
+                        <td>${o.address}</td>
+                        <td>${actions || 'Không có'}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         function setupEventListeners() {
-            document.getElementById('addOwnerBtn').addEventListener('click', openModal);
-            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-            document.getElementById('cancelBtn').addEventListener('click', closeModal);
-            document.getElementById('ownerForm').addEventListener('submit', saveOwner);
-
-            document.getElementById('searchInput').addEventListener('keyup', filterTable);
+            document.getElementById('addOwnerBtn')?.addEventListener('click', openModal);
+            document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+            document.getElementById('cancelBtn')?.addEventListener('click', closeModal);
+            document.getElementById('ownerForm')?.addEventListener('submit', saveOwner);
+            document.getElementById('searchInput')?.addEventListener('keyup', filterTable);
         }
 
         function openModal() {
@@ -240,6 +258,12 @@
         }
 
         async function editOwner(id) {
+            // Guard: Nhân viên không được sửa
+            if (userRole === 'Nhân viên') {
+                alert('Bạn không có quyền sửa chủ sở hữu');
+                return;
+            }
+
             try {
                 const response = await fetch(`/api/owners/${id}`);
                 if (!response.ok) {
@@ -293,19 +317,25 @@
                 return;
             }
 
-            tbody.innerHTML = filtered.map(o => `
-                <tr>
-                    <td>#${o.id}</td>
-                    <td>${o.fullName}</td>
-                    <td>${o.phone}</td>
-                    <td>${o.email}</td>
-                    <td>${o.address}</td>
-                    <td>
-                        <button class="btn-small" onclick="editOwner(${o.id})">Sửa</button>
-                        <button class="btn-small btn-danger" onclick="deleteOwner(${o.id})">Xóa</button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = filtered.map(o => {
+                // Nhân viên không thấy bất cứ nút nào
+                let actions = '';
+                if (userRole !== 'Nhân viên') {
+                    actions = `<button class="btn-small" onclick="editOwner(${o.id})">Sửa</button>`;
+                    actions += `<button class="btn-small btn-danger" onclick="deleteOwner(${o.id})">Xóa</button>`;
+                }
+
+                return `
+                    <tr>
+                        <td>#${o.id}</td>
+                        <td>${o.fullName}</td>
+                        <td>${o.phone}</td>
+                        <td>${o.email}</td>
+                        <td>${o.address}</td>
+                        <td>${actions || 'Không có'}</td>
+                    </tr>
+                `;
+            }).join('');
         }
         document.querySelector('#searchInput').addEventListener('keyup',filterTable);
 

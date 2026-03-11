@@ -1,15 +1,21 @@
 package com.example.ltw_quanlybds.service;
 
 import com.example.ltw_quanlybds.entity.Property;
+import com.example.ltw_quanlybds.entity.Account;
 import com.example.ltw_quanlybds.entity.Owner;
 import com.example.ltw_quanlybds.entity.User;
 import com.example.ltw_quanlybds.exception.ResourceNotFoundException;
+import com.example.ltw_quanlybds.repository.AccountRepository;
 import com.example.ltw_quanlybds.repository.PropertyRepository;
 import com.example.ltw_quanlybds.repository.OwnerRepository;
 import com.example.ltw_quanlybds.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -25,6 +31,9 @@ public class PropertyService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private AccountRepository accountRepository;
 
     public List<Property> getAllProperties() {
         List<Property> properties = propertyRepository.findAll();
@@ -60,6 +69,19 @@ public class PropertyService {
 
     public Property updateProperty(Integer id, Property propertyDetails) {
         Property property = getPropertyById(id);
+
+        // ✅ Kiểm tra nếu là Nhân viên: chỉ được sửa BĐS do mình quản lý
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        Account account = accountRepository.findByUsername(username);
+        if (account != null && "Nhân viên".equals(account.getRole())) {
+            User currentStaff = userRepository.findByAccount(account);
+            if (currentStaff == null || property.getStaff() == null
+                    || !currentStaff.getId().equals(property.getStaff().getId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Bạn chỉ có thể sửa BĐS do mình quản lý");
+            }
+        }
 
         if (propertyDetails.getName() != null) {
             property.setName(propertyDetails.getName());

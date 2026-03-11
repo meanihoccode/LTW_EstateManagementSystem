@@ -55,7 +55,8 @@
         <span class="close" id="closeLogin">&times;</span>
         <h2>Welcome Back</h2>
         <p class="modal-subtitle">Sign in to your account</p>
-        <form onsubmit="handleLogin(event)">
+        <!-- Spring Security tự handle POST /login -->
+        <form action="/login" method="post">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" placeholder="Enter your username" required>
