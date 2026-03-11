@@ -94,6 +94,9 @@ public class WebController {
 
         result.put("role", account.getRole());
         result.put("username", username);
+        result.put("accountId", account.getId());
+        // Debug: xem authority thực tế Spring Security đang dùng
+        result.put("authorities", auth.getAuthorities().toString());
 
         // Tìm nhân viên tương ứng với tài khoản này
         User staff = userRepository.findByAccount(account);

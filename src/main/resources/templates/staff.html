@@ -115,7 +115,7 @@
                 <div class="form-row">
                     <div class="form-group full">
                         <label>Chức vụ:</label>
-                        <select id="vaiTro" required>
+                        <select id="vaiTro" required onchange="autoSetQuyenHan(this.value)">
                             <option>Quản lý</option>
                             <option>Nhân viên kinh doanh</option>
                             <option>Nhân viên kỹ thuật</option>
@@ -123,6 +123,8 @@
                         </select>
                     </div>
                 </div>
+                <!-- quyenHan ẩn, tự động set theo chức vụ -->
+                <input type="hidden" id="quyenHan" value="Quản lý">
                 <div class="modal-actions">
                     <button type="button" class="btn-secondary" id="cancelBtn">Hủy</button>
                     <button type="submit" class="btn-primary">Lưu</button>
@@ -187,10 +189,19 @@
             document.getElementById('searchInput').addEventListener('keyup', filterTable);
         }
 
+        function autoSetQuyenHan(vaiTro) {
+            // Chức vụ nào bắt đầu bằng "Nhân viên" → quyền hạn "Nhân viên"
+            // Quản lý → "Quản lý"
+            const quyen = vaiTro.startsWith('Nhân viên') ? 'Nhân viên' : vaiTro;
+            document.getElementById('quyenHan').value = quyen;
+        }
+
         function openModal() {
             document.getElementById('modalTitle').textContent = 'Thêm Nhân Viên';
             document.getElementById('staffForm').reset();
             delete document.getElementById('staffForm').dataset.editingId;
+            // Set quyền hạn mặc định theo chức vụ mặc định (Quản lý)
+            autoSetQuyenHan(document.getElementById('vaiTro').value);
             document.getElementById('staffModal').style.display = 'block';
         }
 
@@ -204,7 +215,8 @@
             const staffData_form = {
                 fullName: document.getElementById('hoTen').value,
                 phone: document.getElementById('soDienThoai').value,
-                role: document.getElementById('vaiTro').value
+                role: document.getElementById('vaiTro').value,
+                quyenHan: document.getElementById('quyenHan').value
             };
 
             if (!staffData_form.fullName || !staffData_form.phone) {
@@ -251,6 +263,8 @@
                 document.getElementById('hoTen').value = staff.fullName;
                 document.getElementById('soDienThoai').value = staff.phone;
                 document.getElementById('vaiTro').value = staff.role;
+                // Lấy quyền hạn từ account nếu có
+                document.getElementById('quyenHan').value = staff.account ? staff.account.role : 'Nhân viên';
                 document.getElementById('staffForm').dataset.editingId = id;
                 document.getElementById('staffModal').style.display = 'block';
             } catch (error) {

@@ -9,6 +9,7 @@ import com.example.ltw_quanlybds.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
 import java.util.List;
@@ -22,7 +23,8 @@ public class UserService {
     @Autowired
     private AccountRepository accountRepository;
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -33,14 +35,18 @@ public class UserService {
     }
     public User createUser(User user) {
         // Tự động tạo tài khoản trước
-        String username = "nv" + System.currentTimeMillis(); // Tạo username tạm
+        String username = "nv" + System.currentTimeMillis();
         String password = UUID.randomUUID().toString().substring(0, 8);
-        String role = user.getRole() != null ? user.getRole() : "NhanVien";
+
+        // Dùng quyenHan (Admin/Quản lý/Nhân viên) thay vì role (chức danh)
+        String quyenHan = (user.getQuyenHan() != null && !user.getQuyenHan().isBlank())
+                ? user.getQuyenHan()
+                : "Nhân viên";  // mặc định là Nhân viên
 
         Account account = Account.builder()
                 .username(username)
                 .password(passwordEncoder.encode(password))
-                .role(role)
+                .role(quyenHan)
                 .build();
 
         Account savedAccount = accountRepository.save(account);

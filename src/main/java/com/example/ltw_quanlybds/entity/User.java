@@ -37,5 +37,9 @@ public class User {
     @OneToOne
     @JoinColumn(name = "tai_khoan_id")
     private Account account;
+
+    // Không lưu vào DB, chỉ nhận từ frontend khi tạo mới để set quyền hạn cho account
+    @Transient
+    private String quyenHan;
 }
 

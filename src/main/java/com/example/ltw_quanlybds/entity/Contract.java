@@ -2,7 +2,6 @@ package com.example.ltw_quanlybds.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -49,11 +48,9 @@ public class Contract {
     private String status;
 
     @Transient
-    @JsonProperty("propertyId")
     private Integer propertyId; // Dùng để nhận propertyId từ frontend
 
     @Transient
-    @JsonProperty("tenantId")
     private Integer tenantId;
 }
 
