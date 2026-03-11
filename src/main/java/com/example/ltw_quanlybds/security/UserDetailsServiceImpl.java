@@ -24,15 +24,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Tìm account trong database theo username
         Account account = accountRepository.findByUsername(username);
 
         if (account == null) {
             throw new UsernameNotFoundException("Không tìm thấy tài khoản: " + username);
         }
 
-        // Trả về UserDetails với role từ cột quyen_han
-        // Spring Security yêu cầu role phải có prefix "ROLE_"
         return new User(
                 account.getUsername(),
                 account.getPassword(),

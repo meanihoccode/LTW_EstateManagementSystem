@@ -14,28 +14,13 @@ document.addEventListener('DOMContentLoaded', function() {
 const roleElement = document.querySelector('.user');
 async function fetchRole() {
     try {
-        const username = localStorage.getItem('username');
-        if (!username) {
-            console.warn('No username found in localStorage');
-            return;
-        }
+        const response = await fetch('/api/me/role');
+        if (!response.ok) throw new Error('Failed to load role');
 
-        // Lấy tất cả nhân viên để tìm role của người dùng hiện tại
-        const response = await fetch('/api/staffs');
-        if (!response.ok) {
-            throw new Error('Failed to load staff');
-        }
+        const data = await response.json();
 
-        const staffs = await response.json();
-        const currentUser = staffs.find(staff => {
-            if (staff.account && staff.account.username === username) {
-                return true;
-            }
-            return false;
-        });
-
-        if (currentUser && roleElement) {
-            roleElement.textContent = `👤 ${currentUser.role}`;
+        if (roleElement) {
+            roleElement.textContent = `👤 ${data.username} (${data.role})`;
         }
     } catch (error) {
         console.error('Error loading role:', error);
