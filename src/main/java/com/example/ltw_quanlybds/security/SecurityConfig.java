@@ -35,10 +35,16 @@ public class SecurityConfig {
                 // ✅ Public - Không cần đăng nhập
                 .requestMatchers("/", "/css/**", "/js/**", "/img/**").permitAll()
 
-                // ✅ Chỉ Admin mới vào được
-                .requestMatchers("/staff", "/accounts").hasRole("Admin")
-                .requestMatchers("/api/staffs/**").hasRole("Admin")
+                // ✅ Chỉ Admin mới vào được trang tài khoản
+                .requestMatchers("/accounts").hasRole("Admin")
                 .requestMatchers("/api/accounts/**").hasRole("Admin")
+
+                // ✅ Admin + Quản lý vào được trang nhân viên (thêm/sửa/xóa)
+                .requestMatchers("/staff").hasAnyRole("Admin", "Quản lý")
+                .requestMatchers(HttpMethod.GET, "/api/staffs/**").hasAnyRole("Admin", "Quản lý")
+                .requestMatchers(HttpMethod.POST, "/api/staffs/**").hasAnyRole("Admin", "Quản lý")
+                .requestMatchers(HttpMethod.PUT, "/api/staffs/**").hasAnyRole("Admin", "Quản lý")
+                .requestMatchers(HttpMethod.DELETE, "/api/staffs/**").hasAnyRole("Admin", "Quản lý")
 
                 // ✅ Admin + Quản lý vào được các trang (Nhân viên cũng xem được nhưng hạn chế hành động)
                 .requestMatchers("/properties", "/owners", "/tenants").hasAnyRole("Admin", "Quản lý", "Nhân viên")
