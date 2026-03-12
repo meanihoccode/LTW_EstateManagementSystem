@@ -48,11 +48,6 @@ public class ContractController {
         return ResponseEntity.ok(totalActiveContracts);
     }
 
-    @GetMapping("/revenueThisMonth")
-    public ResponseEntity<Double> getRevenueThisMonth() {
-        Double revenue = contractService.getRevenueThisMonth();
-        return ResponseEntity.ok(revenue);
-    }
 
     @GetMapping("/revenueByMonth")
     public ResponseEntity<?> getRevenueByMonth() {

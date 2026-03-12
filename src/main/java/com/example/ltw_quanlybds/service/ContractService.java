@@ -97,9 +97,6 @@ public class ContractService {
         return contractRepository.countByStatus("Hiệu lực") + contractRepository.countByStatus("Chờ duyệt");
     }
 
-    public Double getRevenueThisMonth() {
-        return paymentRepository.calculateTotalPaymentsThisMonth();
-    }
 
     public List<Object[]> getRevenueByMonth() {
         return paymentRepository.getRevenueByMonth();
