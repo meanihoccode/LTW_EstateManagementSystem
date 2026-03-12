@@ -87,7 +87,7 @@ async function fetchRevenueThisMonth() {
 // ===== BIỂU ĐỒ DOANH THU =====
 async function loadRevenueChart() {
     try {
-        const response = await fetch('/api/contracts/revenueByMonth');
+        const response = await fetch('/api/payments/revenueByMonth');
         if (!response.ok) {
             throw new Error('Failed to load revenue chart');
         }

@@ -8,7 +8,6 @@ import com.example.ltw_quanlybds.entity.Property;
 import com.example.ltw_quanlybds.entity.Tenant;
 import com.example.ltw_quanlybds.exception.ResourceNotFoundException;
 import com.example.ltw_quanlybds.repository.ContractRepository;
-import com.example.ltw_quanlybds.repository.PaymentRepository;
 import com.example.ltw_quanlybds.repository.PropertyRepository;
 import com.example.ltw_quanlybds.repository.TenantRepository;
 import jakarta.transaction.Transactional;
@@ -29,8 +28,6 @@ public class ContractService {
     @Autowired
     private TenantRepository tenantRepository;
 
-    @Autowired
-    private PaymentRepository paymentRepository;
 
     public List<Contract> getAllContract() {
         return contractRepository.findAll();
@@ -98,17 +95,7 @@ public class ContractService {
     }
 
 
-    public List<Object[]> getRevenueByMonth() {
-        return paymentRepository.getRevenueByMonth();
-    }
-
     public List<Contract> getExpiringContracts() {
-        // Lấy hợp đồng kết thúc trong 30 ngày tới
         return contractRepository.findExpiringContracts();
-    }
-
-    public List<Object[]> getRecentPayments() {
-        // Lấy 10 thanh toán gần đây nhất
-        return paymentRepository.findRecentPayments();
     }
 }

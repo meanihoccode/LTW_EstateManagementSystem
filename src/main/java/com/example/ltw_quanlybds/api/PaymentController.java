@@ -31,6 +31,12 @@ public class PaymentController {
     public ResponseEntity<Double> getTotalPaymentsThisMonth() {
         return ResponseEntity.ok(paymentService.getTotalPaymentsThisMonth());
     }
+
+    @GetMapping("/revenueByMonth")
+    public ResponseEntity<?> getRevenueByMonth() {
+        return ResponseEntity.ok(paymentService.getRevenueByMonth());
+    }
+
     @PostMapping
     public ResponseEntity<Payment> createPayment(@Valid @RequestBody Payment payment) {
         return ResponseEntity.status(HttpStatus.CREATED)

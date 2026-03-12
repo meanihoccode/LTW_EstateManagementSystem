@@ -80,6 +80,10 @@ public class PaymentService {
         return paymentRepository.calculateTotalPaymentsThisMonth();
     }
 
+    public List<Object[]> getRevenueByMonth() {
+        return paymentRepository.getRevenueByMonth();
+    }
+
     public List<Object[]> getRecentPayments() {
         return paymentRepository.findRecentPayments();
     }
