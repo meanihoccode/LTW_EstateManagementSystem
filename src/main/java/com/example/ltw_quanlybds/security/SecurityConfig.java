@@ -1,5 +1,6 @@
 package com.example.ltw_quanlybds.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -72,6 +73,30 @@ public class SecurityConfig {
                 .requestMatchers("/api/contracts/**", "/api/payments/**").authenticated()
                 .requestMatchers("/api/me/**").authenticated()
                 .anyRequest().authenticated()
+            )
+
+            // Khi gọi /api/** mà chưa đăng nhập → trả 401 JSON thay vì redirect HTML
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    String path = request.getRequestURI();
+                    if (path.startsWith("/api/")) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json;charset=UTF-8");
+                        response.getWriter().write("{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.\"}");
+                    } else {
+                        response.sendRedirect("/");
+                    }
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    String path = request.getRequestURI();
+                    if (path.startsWith("/api/")) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("application/json;charset=UTF-8");
+                        response.getWriter().write("{\"status\":403,\"error\":\"Forbidden\",\"message\":\"Bạn không có quyền truy cập tài nguyên này.\"}");
+                    } else {
+                        response.sendRedirect("/");
+                    }
+                })
             )
 
             .formLogin(form -> form

@@ -1,5 +1,6 @@
 package com.example.ltw_quanlybds.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +25,7 @@ public class Account {
     @Column(name = "ten_dang_nhap", unique = true)
     private String username;
 
+    @JsonIgnore
     @NotBlank(message = "Mật khẩu không được để trống")
     @Column(name = "mat_khau")
     private String password;
