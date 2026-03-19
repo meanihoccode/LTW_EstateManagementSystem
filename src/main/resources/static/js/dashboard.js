@@ -72,7 +72,7 @@ async function fetchEmptyProperties() {
 const revenueThisMonth = document.querySelector('#monthRevenue');
 async function fetchRevenueThisMonth() {
     try {
-        const response = await fetch('/api/contracts/revenueThisMonth');
+        const response = await fetch('/api/payments/revenueThisMonth');
         if (!response.ok) {
             throw new Error('Failed to load revenue this month');
         }
@@ -87,7 +87,7 @@ async function fetchRevenueThisMonth() {
 // ===== BIỂU ĐỒ DOANH THU =====
 async function loadRevenueChart() {
     try {
-        const response = await fetch('/api/contracts/revenueByMonth');
+        const response = await fetch('/api/payments/revenueByMonth');
         if (!response.ok) {
             throw new Error('Failed to load revenue chart');
         }
