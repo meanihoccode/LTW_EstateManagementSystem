@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="/css/dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="/js/darkmode.js"></script>
+    <script src="/js/pagination.js"></script>
+    <script src="/js/search-utils.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -97,6 +99,22 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        <span>Hiển thị <strong id="startRecord">0</strong> - <strong id="endRecord">0</strong> trong <strong id="totalRecords">0</strong> bản ghi</span>
+                        <select id="pageSize" class="page-size-select">
+                            <option value="5">5 bản ghi/trang</option>
+                            <option value="10" selected>10 bản ghi/trang</option>
+                            <option value="20">20 bản ghi/trang</option>
+                            <option value="50">50 bản ghi/trang</option>
+                        </select>
+                    </div>
+                    <div class="pagination-buttons" id="paginationButtons">
+                        <!-- Được tạo bởi JavaScript -->
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -158,11 +176,13 @@
 
     <script>
         let paymentsData = [];
+        let pagination = new PaginationManager({ pageSize: 10 });
 
         document.addEventListener('DOMContentLoaded', function() {
             loadPayments();
             loadContracts();
             setupEventListeners();
+            setupPaginationListener();
         });
 
         async function loadPayments() {
@@ -172,11 +192,14 @@
                     throw new Error('Failed to load payments');
                 }
                 paymentsData = await response.json();
+                pagination.setData(paymentsData);
                 renderTable();
+                renderPagination();
             } catch (error) {
                 console.error('Error: ',error);
                 alert('Lỗi khi tải dữ liệu thanh toán. Vui lòng thử lại sau.');
                 paymentsData=[];
+                pagination.setData(paymentsData);
                 renderTable();
             }
         }
@@ -206,12 +229,19 @@
 
         function renderTable() {
             const tbody = document.getElementById('paymentsTable');
+            const pagedData = pagination.getPagedData();
+
             if (paymentsData.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">Không có dữ liệu</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = paymentsData.map(p => `
+            if (pagedData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">Không tìm thấy kết quả</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = pagedData.map(p => `
                 <tr>
                     <td>#${p.id}</td>
                     <td>Hợp đồng - ${p.contract.id}</td>
@@ -225,6 +255,12 @@
                     </td>
                 </tr>
             `).join('');
+
+            // Cập nhật thông tin pagination
+            const info = pagination.getPaginationInfo();
+            document.getElementById('startRecord').textContent = info.startRecord;
+            document.getElementById('endRecord').textContent = info.endRecord;
+            document.getElementById('totalRecords').textContent = info.totalRecords;
         }
 
         function getStatusClass(status) {
@@ -242,146 +278,201 @@
             document.getElementById('cancelBtn').addEventListener('click', closeModal);
             document.getElementById('paymentForm').addEventListener('submit', savePayment);
 
-            document.getElementById('searchInput').addEventListener('keyup', filterTable);
+            // Tìm kiếm: dùng input để bắt cả gõ, dán (paste), xóa (clear) nhanh
+            document.getElementById('searchInput').addEventListener('input', filterTable);
             document.getElementById('filterStatus').addEventListener('change', filterTable);
         }
 
+        function renderPagination() {
+            pagination.renderPaginationButtons('paginationButtons', 'goToPaymentPage');
+        }
+
+        function goToPaymentPage(page) {
+            if (pagination.goToPage(page)) {
+                renderTable();
+                renderPagination();
+                document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function setupPaginationListener() {
+            document.getElementById('pageSize')?.addEventListener('change', function(e) {
+                pagination.setPageSize(e.target.value);
+                renderTable();
+                renderPagination();
+            });
+        }
+        function filterTable() {
+            try {
+                const searchTextRaw = document.getElementById('searchInput').value.trim();
+                const statusFilter = document.getElementById('filterStatus').value;
+
+                if (!searchTextRaw && !statusFilter) {
+                    pagination.clearFilter();
+                } else {
+                    pagination.filterData(p => {
+                        let matchesSearch = !searchTextRaw;
+
+                        if (!matchesSearch) {
+                            const searchText = searchTextRaw;
+
+                            if (p?.id != null) {
+                                matchesSearch = searchWithoutDiacritics(searchText, String(p.id));
+                            }
+
+                            if (!matchesSearch && p?.contract?.id != null) {
+                                matchesSearch = searchWithoutDiacritics(searchText, String(p.contract.id));
+                            }
+
+                            // Match theo đúng chuỗi UI (user hay copy/gõ theo)
+                            if (!matchesSearch && p?.contract?.id != null) {
+                                matchesSearch = searchWithoutDiacritics(searchText, `hop dong - ${p.contract.id}`);
+                            }
+
+                            if (!matchesSearch && p?.paymentDate) {
+                                matchesSearch = searchWithoutDiacritics(searchText, String(p.paymentDate));
+                            }
+
+                            if (!matchesSearch && p?.amount != null) {
+                                matchesSearch = searchWithoutDiacritics(searchText, String(p.amount));
+                            }
+
+                            if (!matchesSearch && p?.method) {
+                                matchesSearch = searchWithoutDiacritics(searchText, String(p.method));
+                            }
+
+                            if (!matchesSearch && p?.status) {
+                                matchesSearch = searchWithoutDiacritics(searchText, String(p.status));
+                            }
+
+                            if (!matchesSearch && p?.contract?.id != null) {
+                                const contractLabel = `hop dong ${p.contract.id}`;
+                                matchesSearch = searchWithoutDiacritics(searchText, contractLabel);
+                            }
+                        }
+
+                        const matchesStatus = !statusFilter || p?.status === statusFilter;
+                        return matchesSearch && matchesStatus;
+                    });
+                }
+
+                renderTable();
+                renderPagination();
+            } catch (error) {
+                console.error('Filter error:', error);
+            }
+        }
+
+        // openModal() Mở modal thêm thanh toán
         function openModal() {
             document.getElementById('modalTitle').textContent = 'Thêm Thanh Toán';
             document.getElementById('paymentForm').reset();
-
             delete document.getElementById('paymentForm').dataset.editingId;
             document.getElementById('paymentModal').style.display = 'block';
         }
 
+        // closeModal() Đóng modal
         function closeModal() {
             document.getElementById('paymentModal').style.display = 'none';
         }
 
+        // savePayment() Lưu (thêm/sửa) thanh toán
         async function savePayment(e) {
             e.preventDefault();
 
             const editingId = document.getElementById('paymentForm').dataset.editingId;
 
-            const payment = {
-                contractId: parseInt(document.getElementById('hopDong').value),
-                paymentDate: document.getElementById('ngayThanhToan').value,
-                amount: parseInt(document.getElementById('soTien').value),
-                method: document.getElementById('phuongThuc').value,
-                status: document.getElementById('trangThai').value
-            };
+            const contractId = document.getElementById('hopDong').value;
+            const paymentDate = document.getElementById('ngayThanhToan').value;
+            const amount = document.getElementById('soTien').value;
+            const method = document.getElementById('phuongThuc').value;
+            const status = document.getElementById('trangThai').value;
 
-            if (!payment.contractId || !payment.paymentDate || !payment.amount || !payment.method || !payment.status) {
-                alert('Vui lòng điền đầy đủ thông tin.');
+            if (!contractId || !paymentDate || !amount || !method || !status) {
+                alert('Vui lòng điền đầy đủ thông tin');
                 return;
             }
+
+            const payment = {
+                id: editingId,
+                contractId: parseInt(contractId),
+                paymentDate: paymentDate,
+                amount: parseFloat(amount),
+                method: method,
+                status: status
+            };
+
             try {
                 const url = editingId ? '/api/payments/' + editingId : '/api/payments';
-                const method = editingId ? 'PUT' : 'POST';
+                const httpMethod = editingId ? 'PUT' : 'POST';
+
                 const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    method: httpMethod,
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payment)
                 });
-                const savedPayment = await response.json();
+
                 if (!response.ok) {
-                    console.error('Server error: ', savedPayment);
-                    throw new Error('Failed to save payment');
+                    const responseText = await response.text();
+                    throw new Error('Failed to save payment: ' + responseText);
                 }
-                alert((editingId ? 'Cập nhật' : 'Thêm') + ' thanh toán thành công!');
+
                 closeModal();
-                loadPayments();
+                await loadPayments();
             } catch (error) {
-                console.error('Error: ',error);
-                alert('Lỗi khi lưu thanh toán. Vui lòng thử lại sau.');
+                console.error('Error saving payment:', error);
+                alert('Lỗi khi lưu thanh toán. ' + (error?.message || 'Vui lòng thử lại sau.'));
             }
         }
 
+        // editPayment() Mở modal sửa
         async function editPayment(id) {
             try {
                 const response = await fetch('/api/payments/' + id);
                 if (!response.ok) {
                     throw new Error('Failed to load payment details');
                 }
+
                 const payment = await response.json();
 
-                document.getElementById('hopDong').value = payment.contract.id;
-                document.getElementById('ngayThanhToan').value = payment.paymentDate;
-                document.getElementById('soTien').value = payment.amount;
-                document.getElementById('phuongThuc').value = payment.method;
-                document.getElementById('trangThai').value = payment.status;
+                document.getElementById('hopDong').value = payment.contract ? payment.contract.id : '';
+                document.getElementById('ngayThanhToan').value = payment.paymentDate || '';
+                document.getElementById('soTien').value = payment.amount || '';
+                document.getElementById('phuongThuc').value = payment.method || '';
+                document.getElementById('trangThai').value = payment.status || '';
 
                 document.getElementById('paymentForm').dataset.editingId = id;
                 document.getElementById('modalTitle').textContent = 'Sửa Thanh Toán';
                 document.getElementById('paymentModal').style.display = 'block';
             } catch (error) {
-                console.error('Error: ',error);
-                alert('Lỗi khi tải dữ liệu thanh toán. Vui lòng thử lại sau.');
+                console.error('Error:', error);
+                alert('Lỗi khi tải chi tiết thanh toán. Vui lòng thử lại sau.');
             }
         }
 
+        // deletePayment() Xóa thanh toán
         async function deletePayment(id) {
-            if (confirm('Bạn có chắc muốn xóa?')) {
-                try {
-                    const response = await fetch('/api/payments/' + id, {
-                        method: 'DELETE'
-                    });
-                    if (!response.ok) {
-                        throw new Error('Failed to delete payment');
-                    }
-                    alert('Xóa thanh toán thành công!');
-                    loadPayments();
-                } catch (error) {
-                    console.error('Error: ',error);
-                    alert('Lỗi khi xóa thanh toán. Vui lòng thử lại sau.');
+            if (!confirm('Bạn có chắc muốn xóa?')) return;
+
+            try {
+                const response = await fetch('/api/payments/' + id, { method: 'DELETE' });
+                if (!response.ok) {
+                    const responseText = await response.text();
+                    throw new Error('Failed to delete payment: ' + responseText);
                 }
+                await loadPayments();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Lỗi khi xóa thanh toán. Vui lòng thử lại sau.');
             }
-        }
-
-        function filterTable() {
-            const searchText = document.getElementById('searchInput').value.toLowerCase();
-            const statusFilter = document.getElementById('filterStatus').value;
-
-            const filtered = paymentsData.filter(p => {
-                const matchesSearch = p.id.toString().includes(searchText) ||
-                                    p.contract.id.toString().includes(searchText);
-                const matchesStatus = statusFilter === '' || p.status === statusFilter;
-                return matchesSearch && matchesStatus;
-            });
-
-            const tbody = document.getElementById('paymentsTable');
-            if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">Không tìm thấy kết quả</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = filtered.map(p => `
-                <tr>
-                    <td>#${p.id}</td>
-                    <td>Hợp đồng - ${p.contract.id}</td>
-                    <td>${p.paymentDate}</td>
-                    <td>${p.amount}Đ</td>
-                    <td>${p.method}</td>
-                    <td><span class="badge ${getStatusClass(p.status)}">${p.status}</span></td>
-                    <td>
-                        <button class="btn-small" onclick="editPayment(${p.id})">Sửa</button>
-                        <button class="btn-small btn-danger" onclick="deletePayment(${p.id})">Xóa</button>
-                    </td>
-                </tr>
-            `).join('');
         }
 
         window.addEventListener('click', function(event) {
             const modal = document.getElementById('paymentModal');
             if (event.target === modal) {
-                modal.style.display = 'none';
+                closeModal();
             }
         });
     </script>
 </body>
 </html>
-
-
-

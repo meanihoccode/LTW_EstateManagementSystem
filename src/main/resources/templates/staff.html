@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="/css/dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="/js/darkmode.js"></script>
+    <script src="/js/pagination.js"></script>
+    <script src="/js/search-utils.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -90,6 +92,22 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        <span>Hiển thị <strong id="startRecord">0</strong> - <strong id="endRecord">0</strong> trong <strong id="totalRecords">0</strong> bản ghi</span>
+                        <select id="pageSize" class="page-size-select">
+                            <option value="5">5 bản ghi/trang</option>
+                            <option value="10" selected>10 bản ghi/trang</option>
+                            <option value="20">20 bản ghi/trang</option>
+                            <option value="50">50 bản ghi/trang</option>
+                        </select>
+                    </div>
+                    <div class="pagination-buttons" id="paginationButtons">
+                        <!-- Được tạo bởi JavaScript -->
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -135,10 +153,12 @@
 
     <script>
         let staffData = [];
+        let pagination = new PaginationManager({ pageSize: 10 });
 
         document.addEventListener('DOMContentLoaded', function() {
             loadStaff();
             setupEventListeners();
+            setupPaginationListener();
         });
 
         async function loadStaff() {
@@ -150,23 +170,33 @@
                 }
 
                 staffData = await response.json();
+                pagination.setData(staffData);
                 renderTable();
+                renderPagination();
             } catch (error) {
                 console.error('Error:',error);
                 alert('Lỗi tải dữ liệu: ' + error.message);
                 staffData = [];
+                pagination.setData(staffData);
                 renderTable();
             }
         }
 
         function renderTable() {
             const tbody = document.getElementById('staffTable');
+            const pagedData = pagination.getPagedData();
+
             if (staffData.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Không có dữ liệu</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = staffData.map(s => `
+            if (pagedData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Không tìm thấy kết quả</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = pagedData.map(s => `
                 <tr>
                     <td>#${s.id}</td>
                     <td>${s.fullName}</td>
@@ -178,6 +208,12 @@
                     </td>
                 </tr>
             `).join('');
+
+            // Cập nhật thông tin pagination
+            const info = pagination.getPaginationInfo();
+            document.getElementById('startRecord').textContent = info.startRecord;
+            document.getElementById('endRecord').textContent = info.endRecord;
+            document.getElementById('totalRecords').textContent = info.totalRecords;
         }
 
         function setupEventListeners() {
@@ -187,6 +223,26 @@
             document.getElementById('staffForm').addEventListener('submit', saveStaff);
 
             document.getElementById('searchInput').addEventListener('keyup', filterTable);
+        }
+
+        function renderPagination() {
+            pagination.renderPaginationButtons('paginationButtons', 'goToStaffPage');
+        }
+
+        function goToStaffPage(page) {
+            if (pagination.goToPage(page)) {
+                renderTable();
+                renderPagination();
+                document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function setupPaginationListener() {
+            document.getElementById('pageSize')?.addEventListener('change', function(e) {
+                pagination.setPageSize(e.target.value);
+                renderTable();
+                renderPagination();
+            });
         }
 
         function autoSetQuyenHan(vaiTro) {
@@ -294,35 +350,23 @@
         }
 
         function filterTable() {
-            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const searchText = document.getElementById('searchInput').value;
 
-            const filtered = staffData.filter(s => {
-                return (s.fullName && s.fullName.toLowerCase().includes(searchText)) ||
-                    (s.role && s.role.toLowerCase().includes(searchText))
-                    || (s.phone && s.phone.includes(searchText));
-            });
-
-            const tbody = document.getElementById('staffTable');
-            if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Không tìm thấy kết quả</td></tr>';
-                return;
+            if (!searchText) {
+                pagination.clearFilter();
+            } else {
+                pagination.filterData(s => {
+                    return (s.fullName && searchWithoutDiacritics(searchText, s.fullName)) ||
+                        (s.role && searchWithoutDiacritics(searchText, s.role))
+                        || (s.phone && searchWithoutDiacritics(searchText, s.phone));
+                });
             }
 
-            tbody.innerHTML = filtered.map(s => `
-                <tr>
-                    <td>#${s.id}</td>
-                    <td>${s.fullName}</td>
-                    <td>${s.phone}</td>
-                    <td>${s.role}</td>
-                    <td>
-                        <button class="btn-small" onclick="editStaff(${s.id})">Sửa</button>
-                        <button class="btn-small btn-danger" onclick="deleteStaff(${s.id})">Xóa</button>
-                    </td>
-                </tr>
-            `).join('');
+            renderTable();
+            renderPagination();
         }
 
-        document.querySelector('#searchInput').addEventListener('keyup',filterTable);
+        // ...existing code...
 
         window.addEventListener('click', function(event) {
             const modal = document.getElementById('staffModal');

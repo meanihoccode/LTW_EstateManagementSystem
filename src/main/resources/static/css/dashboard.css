@@ -711,3 +711,128 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
     background: #666;
 }
 
+/* ========== PAGINATION ========== */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    background: white;
+    border-top: 1px solid #e8ecf1;
+    border-radius: 0 0 8px 8px;
+    margin-top: 0;
+}
+
+.pagination-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 14px;
+    color: #666;
+}
+
+.page-size-select {
+    padding: 6px 10px;
+    border: 1px solid #e8ecf1;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    background-color: white;
+    transition: border-color 0.2s;
+}
+
+.page-size-select:hover {
+    border-color: #667eea;
+}
+
+.page-size-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.pagination-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.page-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    border: 1px solid #e8ecf1;
+    background-color: white;
+    color: #666;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+    border-color: #667eea;
+    background-color: #f0f4ff;
+    color: #667eea;
+}
+
+.page-btn.active {
+    background-color: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.page-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    color: #ccc;
+}
+
+.page-ellipsis {
+    color: #999;
+    padding: 0 4px;
+}
+
+/* Dark Mode - Pagination */
+body.dark-mode .pagination-container {
+    background-color: #262626;
+    border-top-color: #333;
+}
+
+body.dark-mode .pagination-info {
+    color: #a8a8a8;
+}
+
+body.dark-mode .page-size-select {
+    background-color: #1f1f1f;
+    border-color: #333;
+    color: #e8e8e8;
+}
+
+body.dark-mode .page-size-select:hover {
+    border-color: #667eea;
+}
+
+body.dark-mode .page-btn {
+    border-color: #333;
+    background-color: #1f1f1f;
+    color: #a8a8a8;
+}
+
+body.dark-mode .page-btn:hover:not(:disabled) {
+    border-color: #667eea;
+    background-color: rgba(102, 126, 234, 0.2);
+    color: #667eea;
+}
+
+body.dark-mode .page-btn.active {
+    background-color: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+body.dark-mode .page-ellipsis {
+    color: #666;
+}

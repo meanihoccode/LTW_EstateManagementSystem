@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="/css/dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="/js/darkmode.js"></script>
+    <script src="/js/pagination.js"></script>
+    <script src="/js/search-utils.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -90,6 +92,22 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        <span>Hiển thị <strong id="startRecord">0</strong> - <strong id="endRecord">0</strong> trong <strong id="totalRecords">0</strong> bản ghi</span>
+                        <select id="pageSize" class="page-size-select">
+                            <option value="5">5 bản ghi/trang</option>
+                            <option value="10" selected>10 bản ghi/trang</option>
+                            <option value="20">20 bản ghi/trang</option>
+                            <option value="50">50 bản ghi/trang</option>
+                        </select>
+                    </div>
+                    <div class="pagination-buttons" id="paginationButtons">
+                        <!-- Được tạo bởi JavaScript -->
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -133,11 +151,13 @@
     <script>
         let tenantsData = [];
         let userRole = '';
+        let pagination = new PaginationManager({ pageSize: 10 });
 
         document.addEventListener('DOMContentLoaded', function() {
             fetchUserRole().then(() => {
                 loadTenants();
                 setupEventListeners();
+                setupPaginationListener();
             });
         });
 
@@ -156,28 +176,37 @@
             try {
                 const response = await fetch('/api/tenants');
                 if(!response.ok) {
-                    throw new Error('Failed to load staffs');
+                    throw new Error('Failed to load tenants');
                 }
 
                 tenantsData = await response.json();
+                pagination.setData(tenantsData);
                 renderTable();
+                renderPagination();
             } catch (error) {
                 console.error('Error: ', error);
                 alert('Lỗi khi tải dữ liệu khách thuê. Vui lòng thử lại sau.');
                 tenantsData = [];
+                pagination.setData(tenantsData);
                 renderTable();
             }
         }
 
         function renderTable() {
             const tbody = document.getElementById('tenantsTable');
+            const pagedData = pagination.getPagedData();
+
             if (tenantsData.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Không có dữ liệu</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = tenantsData.map(t => {
-                // Nhân viên không thấy nút xóa
+            if (pagedData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Không tìm thấy kết quả</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = pagedData.map(t => {
                 let actions = `<button class="btn-small" onclick="editTenant(${t.id})">Sửa</button>`;
                 if (userRole !== 'Nhân viên') {
                     actions += `<button class="btn-small btn-danger" onclick="deleteTenant(${t.id})">Xóa</button>`;
@@ -194,6 +223,33 @@
                     </tr>
                 `;
             }).join('');
+
+            // Cập nhật thông tin pagination
+            const info = pagination.getPaginationInfo();
+            document.getElementById('startRecord').textContent = info.startRecord;
+            document.getElementById('endRecord').textContent = info.endRecord;
+            document.getElementById('totalRecords').textContent = info.totalRecords;
+        }
+
+        function renderPagination() {
+            pagination.renderPaginationButtons('paginationButtons', 'goToTenantPage');
+        }
+
+        function goToTenantPage(page) {
+            if (pagination.goToPage(page)) {
+                renderTable();
+                renderPagination();
+                document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function setupPaginationListener() {
+            document.getElementById('pageSize')?.addEventListener('change', function(e) {
+                pageSize = parseInt(e.target.value);
+                currentPage = 1;
+                renderTable();
+                renderPagination();
+            });
         }
 
         function setupEventListeners() {
@@ -291,40 +347,27 @@
         }
 
         function filterTable() {
-            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            try {
+                const searchText = document.getElementById('searchInput').value;
 
-            const filtered = tenantsData.filter(t => {
-                return t.fullName.toLowerCase().includes(searchText) ||
-                    t.email.toLowerCase().includes(searchText) || t.phone.includes(searchText);
-            });
-
-            const tbody = document.getElementById('tenantsTable');
-            if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Không tìm thấy kết quả</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = filtered.map(t => {
-                // Nhân viên không thấy nút xóa
-                let actions = `<button class="btn-small" onclick="editTenant(${t.id})">Sửa</button>`;
-                if (userRole !== 'Nhân viên') {
-                    actions += `<button class="btn-small btn-danger" onclick="deleteTenant(${t.id})">Xóa</button>`;
+                if (!searchText) {
+                    pagination.clearFilter();
+                } else {
+                    pagination.filterData(t => {
+                        return (t.fullName && searchWithoutDiacritics(searchText, t.fullName)) ||
+                            (t.email && searchWithoutDiacritics(searchText, t.email)) ||
+                            (t.phone && searchWithoutDiacritics(searchText, t.phone)) ||
+                            (t.idNumber && searchWithoutDiacritics(searchText, t.idNumber));
+                    });
                 }
 
-                return `
-                    <tr>
-                        <td>#${t.id}</td>
-                        <td>${t.fullName}</td>
-                        <td>${t.idNumber}</td>
-                        <td>${t.phone}</td>
-                        <td>${t.email}</td>
-                        <td>${actions}</td>
-                    </tr>
-                `;
-            }).join('');
+                renderTable();
+                renderPagination();
+            } catch (error) {
+                console.error('Filter error:', error);
+                alert('Lỗi tìm kiếm: ' + error.message);
+            }
         }
-
-        document.querySelector('#searchInput').addEventListener('keyup',filterTable);
 
         window.addEventListener('click', function(event) {
             const modal = document.getElementById('tenantModal');

@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="/css/dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="/js/darkmode.js"></script>
+    <script src="/js/pagination.js"></script>
+    <script src="/js/search-utils.js"></script>
     <style>
         .accounts-section {
             margin-top: 20px;
@@ -311,6 +313,22 @@
                         Đang tải tài khoản...
                     </div>
                 </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        <span>Hiển thị <strong id="startRecord">0</strong> - <strong id="endRecord">0</strong> trong <strong id="totalRecords">0</strong> bản ghi</span>
+                        <select id="pageSize" class="page-size-select">
+                            <option value="5">5 bản ghi/trang</option>
+                            <option value="10" selected>10 bản ghi/trang</option>
+                            <option value="20">20 bản ghi/trang</option>
+                            <option value="50">50 bản ghi/trang</option>
+                        </select>
+                    </div>
+                    <div class="pagination-buttons" id="paginationButtons">
+                        <!-- Được tạo bởi JavaScript -->
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -318,6 +336,12 @@
     <script>
         let allAccounts = [];
         let currentFilter = 'all';
+        let pagination = new PaginationManager({ pageSize: 10 });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAccounts();
+            setupPaginationListener();
+        });
 
         async function loadAccounts() {
             try {
@@ -326,7 +350,7 @@
 
                 // chỉ lấy staff có account
                 allAccounts = data.filter(staff => staff.account !== null);
-
+                pagination.setData(allAccounts);
                 applyFilters();
 
             } catch (error) {
@@ -337,12 +361,13 @@
         }
 
         function displayAccounts(staffList) {
+            const pagedData = pagination.getPagedData();
             let html = '';
 
-            if (staffList.length === 0) {
+            if (pagedData.length === 0) {
                 html = '<div style="text-align:center;color:#999;padding:40px;">Không có tài khoản nào</div>';
             } else {
-                staffList.forEach(staff => {
+                pagedData.forEach(staff => {
                     const acc = staff.account;
 
                     html += `
@@ -356,7 +381,6 @@
                             <span class="info-label">Tên Tài Khoản</span>
                             <span class="info-value">${acc.username}</span>
                         </div>
-
 
                         <div class="info-item">
                             <span class="info-label">Quyền Hạn</span>
@@ -386,6 +410,13 @@
             }
 
             document.getElementById('accountsContainer').innerHTML = html;
+
+            // Cập nhật thông tin pagination
+            const info = pagination.getPaginationInfo();
+            document.getElementById('startRecord').textContent = info.startRecord;
+            document.getElementById('endRecord').textContent = info.endRecord;
+            document.getElementById('totalRecords').textContent = info.totalRecords;
+            renderPagination();
         }
 
         /* ================= FILTER ================= */
@@ -400,29 +431,44 @@
         }
 
         function applyFilters() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
+            const query = document.getElementById('searchInput').value;
 
-            let filtered = allAccounts;
-
-            if (currentFilter !== 'all') {
-                filtered = filtered.filter(staff =>
-                    staff.account.role === currentFilter
+            if (currentFilter === 'all' && !query) {
+                pagination.clearFilter();
+            } else {
+                pagination.filterData(staff =>
+                    (currentFilter === 'all' || staff.account.role === currentFilter) &&
+                    (!query || searchWithoutDiacritics(query, staff.account.username) ||
+                        searchWithoutDiacritics(query, staff.fullName))
                 );
             }
 
-            if (query) {
-                filtered = filtered.filter(staff =>
-                    staff.account.username.toLowerCase().includes(query) ||
-                    staff.fullName.toLowerCase().includes(query)
-                );
-            }
-
-            displayAccounts(filtered);
+            displayAccounts();
         }
 
         /* ================= SEARCH ================= */
 
         document.getElementById('searchInput').addEventListener('keyup', applyFilters);
+
+        function renderPagination() {
+            pagination.renderPaginationButtons('paginationButtons', 'goToAccountPage');
+        }
+
+        function goToAccountPage(page) {
+            if (pagination.goToPage(page)) {
+                displayAccounts();
+                renderPagination();
+                document.querySelector('.accounts-section').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function setupPaginationListener() {
+            document.getElementById('pageSize')?.addEventListener('change', function(e) {
+                pagination.setPageSize(e.target.value);
+                displayAccounts();
+                renderPagination();
+            });
+        }
 
         /* ================= BUTTON FUNCTIONS ================= */
 

@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="/css/dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="/js/darkmode.js"></script>
+    <script src="/js/pagination.js"></script>
+    <script src="/js/search-utils.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -95,10 +97,26 @@
                         </thead>
                         <tbody id="propertiesTable">
                             <tr>
-                                <td colspan="9" style="text-align: center; color: #999;">Đang tải...</td>
+                                <td colspan="10" style="text-align: center; color: #999;">Đang tải...</td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        <span>Hiển thị <strong id="startRecord">0</strong> - <strong id="endRecord">0</strong> trong <strong id="totalRecords">0</strong> bản ghi</span>
+                        <select id="pageSize" class="page-size-select">
+                            <option value="5">5 bản ghi/trang</option>
+                            <option value="10" selected>10 bản ghi/trang</option>
+                            <option value="20">20 bản ghi/trang</option>
+                            <option value="50">50 bản ghi/trang</option>
+                        </select>
+                    </div>
+                    <div class="pagination-buttons" id="paginationButtons">
+                        <!-- Được tạo bởi JavaScript -->
+                    </div>
                 </div>
             </div>
         </main>
@@ -179,6 +197,7 @@
         let propertiesData = [];
         let userRole = '';
         let myStaffId = null;
+        let pagination = new PaginationManager({ pageSize: 10 });
 
         document.addEventListener('DOMContentLoaded', function() {
             fetchUserRole().then(() => {
@@ -186,6 +205,7 @@
                 loadOwners();
                 loadStaffs();
                 setupEventListeners();
+                setupPaginationListener();
             });
         });
 
@@ -209,11 +229,14 @@
                 }
 
                 propertiesData = await response.json();
+                pagination.setData(propertiesData);
                 renderTable();
+                renderPagination();
             } catch (error) {
                 console.error('Error:',error);
                 alert('Lỗi tải dữ liệu ' + error.message);
-                propertiesData = []; // Đảm bảo có mảng rỗng để không lỗi khi renderTable()
+                propertiesData = [];
+                pagination.setData(propertiesData);
                 renderTable();
             }
         }
@@ -289,12 +312,21 @@
 
         function renderTable() {
             const tbody = document.getElementById('propertiesTable');
+            const pagedData = pagination.getPagedData();
+
             if (propertiesData.length === 0) {
                 const colspan = userRole === 'Nhân viên' ? 9 : 10;
                 tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center; color: #999;">Không có dữ liệu</td></tr>`;
                 return;
             }
-            tbody.innerHTML = propertiesData.map(p => {
+
+            if (pagedData.length === 0) {
+                const colspan = userRole === 'Nhân viên' ? 9 : 10;
+                tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center; color: #999;">Không tìm thấy kết quả</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = pagedData.map(p => {
                 const staffColumn = userRole === 'Nhân viên' ? '' : `<td>${p.staff ? p.staff.fullName : 'N/A'}</td>`;
                 return `
                     <tr>
@@ -311,6 +343,12 @@
                     </tr>
                 `;
             }).join('');
+
+            // Cập nhật thông tin pagination
+            const info = pagination.getPaginationInfo();
+            document.getElementById('startRecord').textContent = info.startRecord;
+            document.getElementById('endRecord').textContent = info.endRecord;
+            document.getElementById('totalRecords').textContent = info.totalRecords;
         }
 
         function getStatusClass(status) {
@@ -331,6 +369,26 @@
 
             document.getElementById('searchInput')?.addEventListener('keyup', filterTable);
             document.getElementById('filterStatus')?.addEventListener('change', filterTable);
+        }
+
+        function renderPagination() {
+            pagination.renderPaginationButtons('paginationButtons', 'goToPropertyPage');
+        }
+
+        function goToPropertyPage(page) {
+            if (pagination.goToPage(page)) {
+                renderTable();
+                renderPagination();
+                document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function setupPaginationListener() {
+            document.getElementById('pageSize')?.addEventListener('change', function(e) {
+                pagination.setPageSize(e.target.value);
+                renderTable();
+                renderPagination();
+            });
         }
 
         function openModal() {
@@ -471,38 +529,26 @@
         }
 
         function filterTable() {
-            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const searchText = document.getElementById('searchInput').value.trim();
             const statusFilter = document.getElementById('filterStatus').value;
-            const filtered = propertiesData.filter(p => {
-                const matchesSearch = p.name.toLowerCase().includes(searchText) || p.address.toLowerCase().includes(searchText);
-                const matchesStatus = statusFilter === '' || p.status === statusFilter;
-                return matchesSearch && matchesStatus;
-            });
-            const tbody = document.getElementById('propertiesTable');
-            if (filtered.length === 0) {
-                const colspan = userRole === 'Nhân viên' ? 9 : 10;
-                tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center; color: #999;">Không tìm thấy kết quả</td></tr>`;
-                return;
+
+            if (!searchText && !statusFilter) {
+                pagination.clearFilter();
+            } else {
+                pagination.filterData(p => {
+                    // Nếu không nhập searchText thì coi như match tất cả, chỉ lọc theo status
+                    const matchesSearch = !searchText ||
+                        (p.name && searchWithoutDiacritics(searchText, p.name)) ||
+                        (p.address && searchWithoutDiacritics(searchText, p.address));
+
+                    const matchesStatus = !statusFilter || p.status === statusFilter;
+                    return matchesSearch && matchesStatus;
+                });
             }
-            tbody.innerHTML = filtered.map(p => {
-                const staffColumn = userRole === 'Nhân viên' ? '' : `<td>${p.staff ? p.staff.fullName : 'N/A'}</td>`;
-                return `
-                    <tr>
-                        <td>#${p.id}</td>
-                        <td>${p.name}</td>
-                        <td>${p.type}</td>
-                        <td>${p.address}</td>
-                        <td>${p.area}</td>
-                        <td>${p.rentalPrice}Đ</td>
-                        <td><span class="badge ${getStatusClass(p.status)}">${p.status}</span></td>
-                        <td>${p.owner ? p.owner.fullName : 'N/A'}</td>
-                        ${staffColumn}
-                        <td>${buildActions(p)}</td>
-                    </tr>
-                `;
-            }).join('');
+
+            renderTable();
+            renderPagination();
         }
-        document.querySelector('#searchInput').addEventListener('keyup',filterTable);
 
         window.addEventListener('click', function(event) {
             const modal = document.getElementById('propertyModal');
