@@ -12,3 +12,6 @@ Các vấn đề của khi đăng nhập với role 'Nhân viên':
 2. Nhân viên không được xem cột nhân viên quản lý ở trang BĐS
 3.Ở những trang như BĐS, khách thuê, chủ sở hữu vẫn có nút sửa và xóa -> ẩn đi
 4. Modal sửa hiện ra nhưng ấn vào nút X ở góc hoặc ấn hủy để closeModal -- > không nhận ở trang BĐS, khách thuê, chủ sở hữu
+
+
+thanh toán chưa tìm kiếm được
