@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:sec="http://www.w3.org/1999/xhtml">
+<html lang="vi" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -102,15 +102,7 @@
 
                 <!-- Pagination -->
                 <div class="pagination-container">
-                    <div class="pagination-info">
-                        <span>Hiển thị <strong id="startRecord">0</strong> - <strong id="endRecord">0</strong> trong <strong id="totalRecords">0</strong> bản ghi</span>
-                        <select id="pageSize" class="page-size-select">
-                            <option value="5">5 bản ghi/trang</option>
-                            <option value="10" selected>10 bản ghi/trang</option>
-                            <option value="20">20 bản ghi/trang</option>
-                            <option value="50">50 bản ghi/trang</option>
-                        </select>
-                    </div>
+                    <!-- Bỏ phần hiển thị số bản ghi để UI tối giản -->
                     <div class="pagination-buttons" id="paginationButtons">
                         <!-- Được tạo bởi JavaScript -->
                     </div>
@@ -176,7 +168,7 @@
 
     <script>
         let paymentsData = [];
-        let pagination = new PaginationManager({ pageSize: 10 });
+        let pagination = new PaginationManager({ pageSize: 8 });
 
         document.addEventListener('DOMContentLoaded', function() {
             loadPayments();
@@ -230,37 +222,37 @@
         function renderTable() {
             const tbody = document.getElementById('paymentsTable');
             const pagedData = pagination.getPagedData();
+            const info = pagination.getPaginationInfo();
 
-            if (paymentsData.length === 0) {
+            // Không có dữ liệu gốc
+            if (!paymentsData || paymentsData.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">Không có dữ liệu</td></tr>';
                 return;
             }
 
-            if (pagedData.length === 0) {
+            // Có dữ liệu gốc nhưng filter không ra
+            if (info.totalRecords === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">Không tìm thấy kết quả</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = pagedData.map(p => `
+            tbody.innerHTML = pagedData.map(p => {
+                const contractId = p?.contract?.id ?? '';
+                return `
                 <tr>
                     <td>#${p.id}</td>
-                    <td>Hợp đồng - ${p.contract.id}</td>
-                    <td>${p.paymentDate}</td>
-                    <td>${p.amount}Đ</td>
-                    <td>${p.method}</td>
-                    <td><span class="badge ${getStatusClass(p.status)}">${p.status}</span></td>
+                    <td>${contractId ? `Hợp đồng - ${contractId}` : '-'}</td>
+                    <td>${p.paymentDate ?? ''}</td>
+                    <td>${p.amount ?? ''}Đ</td>
+                    <td>${p.method ?? ''}</td>
+                    <td><span class="badge ${getStatusClass(p.status)}">${p.status ?? ''}</span></td>
                     <td>
                         <button class="btn-small" onclick="editPayment(${p.id})">Sửa</button>
                         <button class="btn-small btn-danger" onclick="deletePayment(${p.id})">Xóa</button>
                     </td>
                 </tr>
-            `).join('');
-
-            // Cập nhật thông tin pagination
-            const info = pagination.getPaginationInfo();
-            document.getElementById('startRecord').textContent = info.startRecord;
-            document.getElementById('endRecord').textContent = info.endRecord;
-            document.getElementById('totalRecords').textContent = info.totalRecords;
+            `;
+            }).join('');
         }
 
         function getStatusClass(status) {
@@ -296,11 +288,7 @@
         }
 
         function setupPaginationListener() {
-            document.getElementById('pageSize')?.addEventListener('change', function(e) {
-                pagination.setPageSize(e.target.value);
-                renderTable();
-                renderPagination();
-            });
+            // pageSize fix cứng = 8 => không cần listener
         }
         function filterTable() {
             try {
@@ -311,11 +299,10 @@
                     pagination.clearFilter();
                 } else {
                     pagination.filterData(p => {
-                        let matchesSearch = !searchTextRaw;
+                        const searchText = searchTextRaw;
+                        let matchesSearch = !searchText;
 
                         if (!matchesSearch) {
-                            const searchText = searchTextRaw;
-
                             if (p?.id != null) {
                                 matchesSearch = searchWithoutDiacritics(searchText, String(p.id));
                             }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -316,15 +316,6 @@
 
                 <!-- Pagination -->
                 <div class="pagination-container">
-                    <div class="pagination-info">
-                        <span>Hiển thị <strong id="startRecord">0</strong> - <strong id="endRecord">0</strong> trong <strong id="totalRecords">0</strong> bản ghi</span>
-                        <select id="pageSize" class="page-size-select">
-                            <option value="5">5 bản ghi/trang</option>
-                            <option value="10" selected>10 bản ghi/trang</option>
-                            <option value="20">20 bản ghi/trang</option>
-                            <option value="50">50 bản ghi/trang</option>
-                        </select>
-                    </div>
                     <div class="pagination-buttons" id="paginationButtons">
                         <!-- Được tạo bởi JavaScript -->
                     </div>
@@ -336,7 +327,7 @@
     <script>
         let allAccounts = [];
         let currentFilter = 'all';
-        let pagination = new PaginationManager({ pageSize: 10 });
+        let pagination = new PaginationManager({ pageSize: 4 });
 
         document.addEventListener('DOMContentLoaded', function() {
             loadAccounts();
@@ -410,12 +401,6 @@
             }
 
             document.getElementById('accountsContainer').innerHTML = html;
-
-            // Cập nhật thông tin pagination
-            const info = pagination.getPaginationInfo();
-            document.getElementById('startRecord').textContent = info.startRecord;
-            document.getElementById('endRecord').textContent = info.endRecord;
-            document.getElementById('totalRecords').textContent = info.totalRecords;
             renderPagination();
         }
 
@@ -463,11 +448,7 @@
         }
 
         function setupPaginationListener() {
-            document.getElementById('pageSize')?.addEventListener('change', function(e) {
-                pagination.setPageSize(e.target.value);
-                displayAccounts();
-                renderPagination();
-            });
+            // fix cứng = 4 => không cần listener
         }
 
         /* ================= BUTTON FUNCTIONS ================= */
@@ -529,4 +510,3 @@ Hãy nhắc nhân viên đổi mật khẩu sau khi đăng nhập lần đầu!`
     </script>
 </body>
 </html>
-

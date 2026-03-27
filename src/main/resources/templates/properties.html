@@ -105,15 +105,6 @@
 
                 <!-- Pagination -->
                 <div class="pagination-container">
-                    <div class="pagination-info">
-                        <span>Hiển thị <strong id="startRecord">0</strong> - <strong id="endRecord">0</strong> trong <strong id="totalRecords">0</strong> bản ghi</span>
-                        <select id="pageSize" class="page-size-select">
-                            <option value="5">5 bản ghi/trang</option>
-                            <option value="10" selected>10 bản ghi/trang</option>
-                            <option value="20">20 bản ghi/trang</option>
-                            <option value="50">50 bản ghi/trang</option>
-                        </select>
-                    </div>
                     <div class="pagination-buttons" id="paginationButtons">
                         <!-- Được tạo bởi JavaScript -->
                     </div>
@@ -197,7 +188,7 @@
         let propertiesData = [];
         let userRole = '';
         let myStaffId = null;
-        let pagination = new PaginationManager({ pageSize: 10 });
+        let pagination = new PaginationManager({ pageSize: 8 });
 
         document.addEventListener('DOMContentLoaded', function() {
             fetchUserRole().then(() => {
@@ -343,12 +334,6 @@
                     </tr>
                 `;
             }).join('');
-
-            // Cập nhật thông tin pagination
-            const info = pagination.getPaginationInfo();
-            document.getElementById('startRecord').textContent = info.startRecord;
-            document.getElementById('endRecord').textContent = info.endRecord;
-            document.getElementById('totalRecords').textContent = info.totalRecords;
         }
 
         function getStatusClass(status) {
@@ -384,11 +369,7 @@
         }
 
         function setupPaginationListener() {
-            document.getElementById('pageSize')?.addEventListener('change', function(e) {
-                pagination.setPageSize(e.target.value);
-                renderTable();
-                renderPagination();
-            });
+            // fix cứng = 8 => không cần listener
         }
 
         function openModal() {
@@ -559,4 +540,3 @@
     </script>
 </body>
 </html>
-

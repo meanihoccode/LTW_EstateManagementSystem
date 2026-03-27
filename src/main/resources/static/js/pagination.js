@@ -64,6 +64,16 @@ class PaginationManager {
     }
 
     getPaginationInfo() {
+        if (!this.filteredData || this.filteredData.length === 0) {
+            return {
+                startRecord: 0,
+                endRecord: 0,
+                totalRecords: 0,
+                currentPage: 1,
+                totalPages: 0
+            };
+        }
+
         const startIndex = (this.currentPage - 1) * this.pageSize;
         const endIndex = Math.min(startIndex + this.pageSize, this.filteredData.length);
         return {
@@ -117,4 +127,3 @@ class PaginationManager {
         container.innerHTML = html;
     }
 }
-

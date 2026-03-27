@@ -95,15 +95,6 @@
 
                 <!-- Pagination -->
                 <div class="pagination-container">
-                    <div class="pagination-info">
-                        <span>Hiển thị <strong id="startRecord">0</strong> - <strong id="endRecord">0</strong> trong <strong id="totalRecords">0</strong> bản ghi</span>
-                        <select id="pageSize" class="page-size-select">
-                            <option value="5">5 bản ghi/trang</option>
-                            <option value="10" selected>10 bản ghi/trang</option>
-                            <option value="20">20 bản ghi/trang</option>
-                            <option value="50">50 bản ghi/trang</option>
-                        </select>
-                    </div>
                     <div class="pagination-buttons" id="paginationButtons">
                         <!-- Được tạo bởi JavaScript -->
                     </div>
@@ -153,7 +144,7 @@
 
     <script>
         let staffData = [];
-        let pagination = new PaginationManager({ pageSize: 10 });
+        let pagination = new PaginationManager({ pageSize: 8 });
 
         document.addEventListener('DOMContentLoaded', function() {
             loadStaff();
@@ -208,12 +199,6 @@
                     </td>
                 </tr>
             `).join('');
-
-            // Cập nhật thông tin pagination
-            const info = pagination.getPaginationInfo();
-            document.getElementById('startRecord').textContent = info.startRecord;
-            document.getElementById('endRecord').textContent = info.endRecord;
-            document.getElementById('totalRecords').textContent = info.totalRecords;
         }
 
         function setupEventListeners() {
@@ -238,11 +223,7 @@
         }
 
         function setupPaginationListener() {
-            document.getElementById('pageSize')?.addEventListener('change', function(e) {
-                pagination.setPageSize(e.target.value);
-                renderTable();
-                renderPagination();
-            });
+            // pageSize fix cứng = 8 => không cần listener
         }
 
         function autoSetQuyenHan(vaiTro) {
@@ -366,8 +347,6 @@
             renderPagination();
         }
 
-        // ...existing code...
-
         window.addEventListener('click', function(event) {
             const modal = document.getElementById('staffModal');
             if (event.target === modal) {
@@ -377,6 +356,3 @@
     </script>
 </body>
 </html>
-
-
-
