@@ -14,4 +14,5 @@ Các vấn đề của khi đăng nhập với role 'Nhân viên':
 4. Modal sửa hiện ra nhưng ấn vào nút X ở góc hoặc ấn hủy để closeModal -- > không nhận ở trang BĐS, khách thuê, chủ sở hữu
 
 
-thanh toán chưa tìm kiếm được
+- khi thêm hợp đồng mới -> BĐS  phải tự đổi trạng thái
+- admin có thêm nút duyện hoặc tự chối thanh toán, hợp đồng

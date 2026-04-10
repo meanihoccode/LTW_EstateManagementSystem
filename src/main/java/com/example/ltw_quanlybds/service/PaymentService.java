@@ -11,7 +11,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 @Service
 @Transactional
 
@@ -21,6 +24,11 @@ public class PaymentService {
 
     @Autowired
     private ContractRepository contractRepository;
+
+    public Page<Payment> getPaymentsPaged(int page, int size, String keyword, String status) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return paymentRepository.searchPayments(keyword, status, pageable);
+    }
 
     public List<Payment> getAllPayments()
     {
