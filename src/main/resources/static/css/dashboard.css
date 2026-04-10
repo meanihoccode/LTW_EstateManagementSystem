@@ -711,53 +711,58 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
     background: #666;
 }
 
-/* ========== PAGINATION ========== */
+/* ========== PAGINATION ========== *//* ==========================================
+   CSS CHO PHÂN TRANG (PAGINATION)
+   ========================================== */
 .pagination-container {
     display: flex;
-    justify-content: center; /* căn giữa */
+    justify-content: center;
     align-items: center;
-    padding: 20px 30px;
-    background: white;
-    border-top: 1px solid #e8ecf1;
-    border-radius: 0 0 8px 8px;
-    margin-top: 0;
-}
-
-/* Khi trang nào vẫn còn pagination-info (nếu sau này dùng lại) thì cho phép wrap */
-.pagination-info {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    font-size: 14px;
-    color: #666;
-}
-
-.page-size-select {
-    padding: 6px 10px;
-    border: 1px solid #e8ecf1;
-    border-radius: 4px;
-    font-size: 13px;
-    font-family: 'Poppins', sans-serif;
-    cursor: pointer;
-    background-color: white;
-    transition: border-color 0.2s;
-}
-
-.page-size-select:hover {
-    border-color: #667eea;
-}
-
-.page-size-select:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    margin-top: 25px;
+    padding: 10px 0;
 }
 
 .pagination-buttons {
     display: flex;
-    justify-content: center; /* đảm bảo cụm nút nằm giữa */
-    gap: 8px;
-    align-items: center;
+    gap: 8px; /* Khoảng cách giữa các nút */
+}
+
+.pagination-buttons button {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 8px 14px;
+    border-radius: 6px; /* Bo góc mềm mại */
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Hiệu ứng khi di chuột vào nút */
+.pagination-buttons button:hover:not(:disabled) {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
+    transform: translateY(-1px); /* Nổi lên nhẹ */
+}
+
+/* Trạng thái trang đang chọn (Active) - Dùng màu cam đỏ giống logo/avatar của bạn */
+.pagination-buttons button.active {
+    background-color: #ee4d2d;
+    color: #ffffff;
+    border-color: #ee4d2d;
+    box-shadow: 0 4px 6px -1px rgba(238, 77, 45, 0.2);
+}
+
+/* Trạng thái nút bị vô hiệu hóa (Ví dụ: Đang ở trang 1 thì nút Lùi mờ đi) */
+.pagination-buttons button:disabled {
+    background-color: #f8fafc;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
 .page-btn {
@@ -837,4 +842,314 @@ body.dark-mode .page-btn.active {
 
 body.dark-mode .page-ellipsis {
     color: #666;
+}
+
+/* 1. Đảm bảo form-row chia đều không gian */
+.form-row {
+    display: flex;
+    gap: 15px; /* Tùy chỉnh khoảng cách giữa 2 cột cho đẹp */
+    width: 100%;
+}
+
+/* 2. Ép form-group chia đúng tỷ lệ và KHÔNG được phình to */
+.form-group {
+    flex: 1;
+    min-width: 0; /* RẤT QUAN TRỌNG: Thuộc tính này ngăn flex-item phình to theo nội dung */
+    width: 100%;
+}
+
+/* 3. Xử lý nội dung bên trong select/input */
+.form-group select,
+.form-group input {
+    width: 100%; /* Bắt buộc phần tử con chỉ rộng tối đa bằng thẻ cha */
+    box-sizing: border-box; /* Tính cả padding/border vào kích thước */
+}
+
+/* 4. Cắt chữ dài bằng dấu "..." cho thẻ select */
+.form-group select {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   FORM & MODAL STYLES (Light & Dark Theme)
+   ========================================================================== */
+
+/* --- TỔNG QUAN MODAL --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Nền mờ */
+    backdrop-filter: blur(4px); /* Hiệu ứng mờ nền chuẩn Apple */
+    overflow: auto;
+    transition: opacity 0.3s ease;
+}
+
+.modal-content {
+    background-color: #ffffff;
+    margin: 5% auto; /* Canh giữa, cách top 5% */
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 600px;
+    animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header của Modal */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #64748b;
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: #ee4d2d; /* Màu nhấn của theme */
+}
+
+/* --- BỐ CỤC FORM --- */
+.form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.form-group {
+    flex: 1;
+    min-width: 0; /* Ngăn vỡ layout khi text dài */
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full {
+    flex: 100%;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #475569;
+    margin-bottom: 6px;
+}
+
+/* --- Ô NHẬP LIỆU (INPUT, SELECT) --- */
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    color: #334155;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+/* Cắt chữ dài bằng dấu ... cho select */
+.form-group select {
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    appearance: none; /* Xóa mũi tên mặc định trên một số trình duyệt */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 35px;
+}
+
+.form-group input:hover,
+.form-group select:hover {
+    border-color: #94a3b8;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #ee4d2d; /* Màu nhấn */
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(238, 77, 45, 0.1); /* Viền sáng khi đang nhập */
+}
+
+/* --- NÚT BẤM (ACTIONS) --- */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.modal-actions button {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.btn-secondary:hover {
+    background-color: #e2e8f0;
+    color: #0f172a;
+}
+
+.btn-primary {
+    background-color: #ee4d2d;
+    color: #ffffff;
+    border: 1px solid #ee4d2d;
+    box-shadow: 0 2px 4px rgba(238, 77, 45, 0.2);
+}
+
+.btn-primary:hover {
+    background-color: #d73a1d;
+    border-color: #d73a1d;
+    box-shadow: 0 4px 6px rgba(238, 77, 45, 0.3);
+}
+
+/* ==========================================================================
+   DARK MODE CHO FORM
+   ========================================================================== */
+body.dark-mode .modal-content {
+    background-color: #1e1e1e;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .modal-header {
+    border-bottom-color: #333;
+}
+
+body.dark-mode .modal-header h2 {
+    color: #f1f5f9;
+}
+
+body.dark-mode .close-btn {
+    color: #94a3b8;
+}
+
+body.dark-mode .close-btn:hover {
+    color: #ee4d2d;
+}
+
+body.dark-mode .form-group label {
+    color: #cbd5e1;
+}
+
+body.dark-mode .form-group input,
+body.dark-mode .form-group select {
+    background-color: #2d2d2d;
+    border-color: #444;
+    color: #f8fafc;
+}
+
+body.dark-mode .form-group select {
+    /* Đổi màu mũi tên SVG sang trắng mờ cho hợp dark mode */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+body.dark-mode .form-group input:hover,
+body.dark-mode .form-group select:hover {
+    border-color: #666;
+}
+
+body.dark-mode .form-group input:focus,
+body.dark-mode .form-group select:focus {
+    border-color: #ee4d2d;
+    background-color: #1e1e1e;
+    box-shadow: 0 0 0 3px rgba(238, 77, 45, 0.2);
+}
+
+/* Fix lỗi màu nền của các lựa chọn (option) trong Dark Mode */
+body.dark-mode .form-group select option {
+    background-color: #2d2d2d;
+    color: #f8fafc;
+}
+
+body.dark-mode .modal-actions {
+    border-top-color: #333;
+}
+
+body.dark-mode .btn-secondary {
+    background-color: #333;
+    color: #e2e8f0;
+    border-color: #444;
+}
+
+body.dark-mode .btn-secondary:hover {
+    background-color: #444;
+    color: #fff;
+}
+/* ==========================================================================
+   DARK MODE CHO PHÂN TRANG (PAGINATION)
+   ========================================================================== */
+
+body.dark-mode .pagination-buttons button {
+    background-color: #2d2d2d;
+    border-color: #444;
+    color: #cbd5e1;
+}
+
+/* Hiệu ứng hover trong dark mode */
+body.dark-mode .pagination-buttons button:hover:not(:disabled) {
+    background-color: #404040;
+    border-color: #666;
+    color: #ffffff;
+}
+
+/* Trạng thái trang đang chọn (Active) */
+body.dark-mode .pagination-buttons button.active {
+    background-color: #ee4d2d; /* Giữ nguyên màu cam đỏ để đồng bộ nhận diện */
+    color: #ffffff;
+    border-color: #ee4d2d;
+    box-shadow: 0 4px 6px -1px rgba(238, 77, 45, 0.4); /* Bóng đổ đậm hơn một chút cho hợp nền đen */
+}
+
+/* Trạng thái nút bị vô hiệu hóa (Disabled) */
+body.dark-mode .pagination-buttons button:disabled {
+    background-color: #1e1e1e;
+    color: #64748b;
+    border-color: #333;
+    opacity: 0.6;
 }

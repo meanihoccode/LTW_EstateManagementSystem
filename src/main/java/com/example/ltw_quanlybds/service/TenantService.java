@@ -8,13 +8,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 @Service
 @Transactional
 public class TenantService {
     @Autowired
     private TenantRepository tenantRepository;
 
+
+    public Page<Tenant> getTenantsPaged(int page, int size, String keyword) {
+        // Sắp xếp khách thuê mới nhất lên đầu
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return tenantRepository.searchTenants(keyword, pageable);
+    }
     public List<Tenant> getAll() {
         return tenantRepository.findAll();
     }

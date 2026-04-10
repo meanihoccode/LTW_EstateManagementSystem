@@ -6,7 +6,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment,Integer> {
     List<Payment> findAllByStatus(String status);
@@ -32,4 +36,14 @@ public interface PaymentRepository extends JpaRepository<Payment,Integer> {
             "ORDER BY p.ngay_thanh_toan DESC " +
             "LIMIT 10", nativeQuery = true)
     List<Object[]> findRecentPayments();
+
+    @Query("SELECT p FROM Payment p WHERE " +
+            "(:status IS NULL OR :status = '' OR p.status = :status) AND " +
+            "(:keyword IS NULL OR :keyword = '' OR " +
+            "CAST(p.id AS string) LIKE CONCAT('%', :keyword, '%') OR " +
+            "CAST(p.contract.id AS string) LIKE CONCAT('%', :keyword, '%'))")
+    Page<Payment> searchPayments(
+            @Param("keyword") String keyword,
+            @Param("status") String status,
+            Pageable pageable);
 }

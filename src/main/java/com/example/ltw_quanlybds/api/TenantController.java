@@ -4,6 +4,7 @@ import com.example.ltw_quanlybds.entity.Tenant;
 import com.example.ltw_quanlybds.service.TenantService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,17 @@ import java.util.List;
 public class TenantController {
     @Autowired
     private TenantService tenantService;
+
+
+    @GetMapping("/paged")
+    public ResponseEntity<Page<Tenant>> getTenantsPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size,
+            @RequestParam(required = false) String keyword) {
+
+        return ResponseEntity.ok(tenantService.getTenantsPaged(page, size, keyword));
+    }
+
     @GetMapping
     public ResponseEntity<List<Tenant>> getAll() {
         return ResponseEntity.ok(tenantService.getAll());

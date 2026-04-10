@@ -13,7 +13,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
 import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 @Service
 @Transactional
 public class UserService {
@@ -25,6 +28,16 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    public Page<User> getStaffsPaged(int page, int size, String keyword) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return userRepository.searchStaffs(keyword, pageable);
+    }
+
+    public Page<User> getUsersWithAccountsPaged(int page, int size, String keyword, String role) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return userRepository.searchUsersWithAccounts(keyword, role, pageable);
+    }
 
     public List<User> getAllUsers() {
         return userRepository.findAll();

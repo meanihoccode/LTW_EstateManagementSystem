@@ -297,14 +297,14 @@
             <div class="dashboard-content">
                 <!-- Search & Filter -->
                 <div class="search-filter">
-                    <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên tài khoản hoặc tên nhân viên...">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm theo SĐT hoặc tên nhân viên...">
                 </div>
 
                 <!-- Filter Tabs -->
                 <div class="filter-tabs">
                     <button class="tab-btn active" onclick="filterByRole('all',this)">Tất cả</button>
                     <button class="tab-btn" onclick="filterByRole('Admin',this)">Admin</button>
-                    <button class="tab-btn" onclick="filterByRole('NhanVien',this)">Nhân viên</button>
+                    <button class="tab-btn" onclick="filterByRole('Nhân viên',this)">Nhân viên</button>
                 </div>
 
                 <!-- Accounts Section -->
@@ -324,189 +324,21 @@
         </main>
     </div>
 
-    <script>
-        let allAccounts = [];
-        let currentFilter = 'all';
-        let pagination = new PaginationManager({ pageSize: 4 });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            loadAccounts();
-            setupPaginationListener();
-        });
-
-        async function loadAccounts() {
-            try {
-                const response = await fetch('/api/staffs');
-                const data = await response.json();
-
-                // chỉ lấy staff có account
-                allAccounts = data.filter(staff => staff.account !== null);
-                pagination.setData(allAccounts);
-                applyFilters();
-
-            } catch (error) {
-                console.error('Lỗi:', error);
-                document.getElementById('accountsContainer').innerHTML =
-                    '<div style="color:red;padding:20px;">Lỗi khi tải dữ liệu!</div>';
-            }
-        }
-
-        function displayAccounts(staffList) {
-            const pagedData = pagination.getPagedData();
-            let html = '';
-
-            if (pagedData.length === 0) {
-                html = '<div style="text-align:center;color:#999;padding:40px;">Không có tài khoản nào</div>';
-            } else {
-                pagedData.forEach(staff => {
-                    const acc = staff.account;
-
-                    html += `
-                <div class="account-card">
-                    <div class="staff-info">
-                        <strong>👤 ${staff.fullName}</strong> | 📞 ${staff.phone}
-                    </div>
-
-                    <div class="account-info">
-                        <div class="info-item">
-                            <span class="info-label">Tên Tài Khoản</span>
-                            <span class="info-value">${acc.username}</span>
-                        </div>
-
-                        <div class="info-item">
-                            <span class="info-label">Quyền Hạn</span>
-                            <span class="info-value">${acc.role}</span>
-                        </div>
-
-                        <div class="info-item">
-                            <span class="info-label">ID</span>
-                            <span class="info-value">#${acc.id}</span>
-                        </div>
-                    </div>
-
-                    <div class="account-actions">
-                        <button class="btn-copy"
-                            onclick="copyToClipboard('${acc.username}')">
-                            📋 Copy Username
-                        </button>
-
-                        <button class="btn-reset-pwd"
-                            onclick="resetPassword(${acc.id})">
-                            🔄 Đặt Lại MK
-                        </button>
-                    </div>
-                </div>
-            `;
-                });
-            }
-
-            document.getElementById('accountsContainer').innerHTML = html;
-            renderPagination();
-        }
-
-        /* ================= FILTER ================= */
-
-        function filterByRole(role, btn) {
-            currentFilter = role;
-
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            applyFilters();
-        }
-
-        function applyFilters() {
-            const query = document.getElementById('searchInput').value;
-
-            if (currentFilter === 'all' && !query) {
-                pagination.clearFilter();
-            } else {
-                pagination.filterData(staff =>
-                    (currentFilter === 'all' || staff.account.role === currentFilter) &&
-                    (!query || searchWithoutDiacritics(query, staff.account.username) ||
-                        searchWithoutDiacritics(query, staff.fullName))
-                );
-            }
-
-            displayAccounts();
-        }
-
-        /* ================= SEARCH ================= */
-
-        document.getElementById('searchInput').addEventListener('keyup', applyFilters);
-
-        function renderPagination() {
-            pagination.renderPaginationButtons('paginationButtons', 'goToAccountPage');
-        }
-
-        function goToAccountPage(page) {
-            if (pagination.goToPage(page)) {
-                displayAccounts();
-                renderPagination();
-                document.querySelector('.accounts-section').scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-
-        function setupPaginationListener() {
-            // fix cứng = 4 => không cần listener
-        }
-
-        /* ================= BUTTON FUNCTIONS ================= */
-
-
-
-
-
-
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text)
-                .then(() => alert('Đã copy username!'))
-                .catch(err => console.error(err));
-        }
-
-        function togglePassword(accountId) {
-            const pwd = document.getElementById(`pwd-${accountId}`);
-            const mask = document.getElementById(`mask-${accountId}`);
-
-            if (pwd.style.display === 'none') {
-                pwd.style.display = 'inline';
-                mask.style.display = 'none';
-            } else {
-                pwd.style.display = 'none';
-                mask.style.display = 'inline';
-            }
-        }
-
-        async function resetPassword(accountId) {
-            if (!confirm('Bạn có chắc muốn đặt lại mật khẩu?')) return;
-
-            try {
-                const response = await fetch(`/api/auth/accounts/${accountId}/reset-password`, {
-                    method: 'PUT'
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-
-                    alert(
-                        `Username: ${data.username}
-Mật khẩu tạm: ${data.temporaryPassword}
-Hãy nhắc nhân viên đổi mật khẩu sau khi đăng nhập lần đầu!`
-                    );
-
-                    loadAccounts();
-                } else {
-                    alert('Lỗi khi reset mật khẩu!');
-                }
-
-            } catch (error) {
-                console.error(error);
-                alert('Lỗi khi reset mật khẩu!');
-            }
-        }
-
-        window.addEventListener('load', loadAccounts);
-
-    </script>
+    <div id="successResetModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>✅ Đặt lại MK Thành công</h2>
+                <button class="close-btn" onclick="document.getElementById('successResetModal').style.display='none'">&times;</button>
+            </div>
+            <div style="padding: 15px 0; text-align: center;">
+                <p><strong>Username:</strong> <span id="resetUname" style="font-size: 16px;"></span></p>
+                <p><strong>Mật khẩu tạm:</strong> <span id="resetTempPwd" style="color: #ee4d2d; font-weight: bold; font-size: 20px;"></span></p>
+            </div>
+            <div class="modal-actions" style="justify-content: center;">
+                <button type="button" class="btn-primary" id="btnCopyResetInfo" style="width: 100%;">📋 Copy & Đóng</button>
+            </div>
+        </div>
+    </div>
+    <script src="/js/accounts.js"></script>
 </body>
 </html>

@@ -6,6 +6,7 @@ import com.example.ltw_quanlybds.entity.User;
 import com.example.ltw_quanlybds.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,15 @@ import java.util.List;
 public class        UserController {
     @Autowired
     private UserService userService;
+
+    @GetMapping("/paged")
+    public ResponseEntity<Page<User>> getStaffsPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size,
+            @RequestParam(required = false) String keyword) {
+
+        return ResponseEntity.ok(userService.getStaffsPaged(page, size, keyword));
+    }
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());

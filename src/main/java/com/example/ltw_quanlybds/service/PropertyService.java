@@ -16,6 +16,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -65,6 +69,12 @@ public class PropertyService {
         }
 
         return propertyRepository.save(property);
+    }
+
+    public Page<Property> getPropertiesPaged(int page, int size, String keyword, String status) {
+        // Mặc định sắp xếp theo ID giảm dần (BĐS mới nhất lên đầu)
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return propertyRepository.searchProperties(keyword, status, pageable);
     }
 
     public Property updateProperty(Integer id, Property propertyDetails) {

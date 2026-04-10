@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import org.springframework.data.domain.Page;
 
 @RestController
 @RequestMapping("/api/properties")
@@ -17,10 +18,26 @@ public class PropertyController {
     @Autowired
     private PropertyService propertyService;
 
+
+
+
+    // 1. API GỐC (GIỮ NGUYÊN): Trả về toàn bộ danh sách dùng cho Dropdown
     @GetMapping
     public ResponseEntity<List<Property>> getAllProperties() {
         return ResponseEntity.ok(propertyService.getAllProperties());
     }
+
+    // 2. API MỚI DÀNH RIÊNG CHO BẢNG PHÂN TRANG (Thêm hậu tố /paged)
+    @GetMapping("/paged")
+    public ResponseEntity<Page<Property>> getPropertiesPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status) {
+
+        return ResponseEntity.ok(propertyService.getPropertiesPaged(page, size, keyword, status));
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Property> getProperty(@PathVariable Integer id) {

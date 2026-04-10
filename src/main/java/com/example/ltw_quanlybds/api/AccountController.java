@@ -4,6 +4,7 @@ import com.example.ltw_quanlybds.dto.LoginRequest;
 import com.example.ltw_quanlybds.dto.LoginResponse;
 import com.example.ltw_quanlybds.dto.ChangePasswordRequest;
 import com.example.ltw_quanlybds.entity.Account;
+import com.example.ltw_quanlybds.entity.Contract;
 import com.example.ltw_quanlybds.entity.User;
 import com.example.ltw_quanlybds.service.AccountService;
 import com.example.ltw_quanlybds.service.UserService;
@@ -11,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -72,6 +75,15 @@ public class AccountController {
         return ResponseEntity.ok(loginResponse);
     }
 
+    @GetMapping("/accounts/paged")
+    public ResponseEntity<Page<User>> getAccountsPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "4") int size, // Phân trang tài khoản chỉ 4 thẻ/trang như cũ
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, defaultValue = "all") String role) {
+
+        return ResponseEntity.ok(userService.getUsersWithAccountsPaged(page, size, keyword, role));
+    }
     // Admin xem danh sách tất cả tài khoản
     @GetMapping("/accounts")
     public ResponseEntity<?> getAllAccounts() {
