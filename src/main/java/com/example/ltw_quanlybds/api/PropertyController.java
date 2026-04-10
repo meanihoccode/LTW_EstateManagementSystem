@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import org.springframework.data.domain.Page;
 
 @RestController
 @RequestMapping("/api/properties")
@@ -17,10 +18,20 @@ public class PropertyController {
     @Autowired
     private PropertyService propertyService;
 
+
+
+
+    // Thay thế hàm getAllProperties() cũ bằng hàm này
     @GetMapping
-    public ResponseEntity<List<Property>> getAllProperties() {
-        return ResponseEntity.ok(propertyService.getAllProperties());
+    public ResponseEntity<Page<Property>> getAllProperties(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status) {
+
+        return ResponseEntity.ok(propertyService.getPropertiesPaged(page, size, keyword, status));
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Property> getProperty(@PathVariable Integer id) {

@@ -711,53 +711,58 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
     background: #666;
 }
 
-/* ========== PAGINATION ========== */
+/* ========== PAGINATION ========== *//* ==========================================
+   CSS CHO PHÂN TRANG (PAGINATION)
+   ========================================== */
 .pagination-container {
     display: flex;
-    justify-content: center; /* căn giữa */
+    justify-content: center;
     align-items: center;
-    padding: 20px 30px;
-    background: white;
-    border-top: 1px solid #e8ecf1;
-    border-radius: 0 0 8px 8px;
-    margin-top: 0;
-}
-
-/* Khi trang nào vẫn còn pagination-info (nếu sau này dùng lại) thì cho phép wrap */
-.pagination-info {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    font-size: 14px;
-    color: #666;
-}
-
-.page-size-select {
-    padding: 6px 10px;
-    border: 1px solid #e8ecf1;
-    border-radius: 4px;
-    font-size: 13px;
-    font-family: 'Poppins', sans-serif;
-    cursor: pointer;
-    background-color: white;
-    transition: border-color 0.2s;
-}
-
-.page-size-select:hover {
-    border-color: #667eea;
-}
-
-.page-size-select:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    margin-top: 25px;
+    padding: 10px 0;
 }
 
 .pagination-buttons {
     display: flex;
-    justify-content: center; /* đảm bảo cụm nút nằm giữa */
-    gap: 8px;
-    align-items: center;
+    gap: 8px; /* Khoảng cách giữa các nút */
+}
+
+.pagination-buttons button {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 8px 14px;
+    border-radius: 6px; /* Bo góc mềm mại */
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Hiệu ứng khi di chuột vào nút */
+.pagination-buttons button:hover:not(:disabled) {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
+    transform: translateY(-1px); /* Nổi lên nhẹ */
+}
+
+/* Trạng thái trang đang chọn (Active) - Dùng màu cam đỏ giống logo/avatar của bạn */
+.pagination-buttons button.active {
+    background-color: #ee4d2d;
+    color: #ffffff;
+    border-color: #ee4d2d;
+    box-shadow: 0 4px 6px -1px rgba(238, 77, 45, 0.2);
+}
+
+/* Trạng thái nút bị vô hiệu hóa (Ví dụ: Đang ở trang 1 thì nút Lùi mờ đi) */
+.pagination-buttons button:disabled {
+    background-color: #f8fafc;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
 .page-btn {
