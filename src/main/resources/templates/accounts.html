@@ -324,6 +324,21 @@
         </main>
     </div>
 
+    <div id="successResetModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>✅ Đặt lại MK Thành công</h2>
+                <button class="close-btn" onclick="document.getElementById('successResetModal').style.display='none'">&times;</button>
+            </div>
+            <div style="padding: 15px 0; text-align: center;">
+                <p><strong>Username:</strong> <span id="resetUname" style="font-size: 16px;"></span></p>
+                <p><strong>Mật khẩu tạm:</strong> <span id="resetTempPwd" style="color: #ee4d2d; font-weight: bold; font-size: 20px;"></span></p>
+            </div>
+            <div class="modal-actions" style="justify-content: center;">
+                <button type="button" class="btn-primary" id="btnCopyResetInfo" style="width: 100%;">📋 Copy & Đóng</button>
+            </div>
+        </div>
+    </div>
     <script src="/js/accounts.js"></script>
 </body>
 </html>

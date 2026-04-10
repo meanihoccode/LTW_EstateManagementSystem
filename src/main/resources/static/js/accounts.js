@@ -157,8 +157,25 @@ async function resetPassword(accountId) {
 
         if (response.ok) {
             const data = await response.json();
-            alert(`Thành công!\nUsername: ${data.username}\nMật khẩu tạm: ${data.temporaryPassword}\nHãy nhắc nhân viên đổi mật khẩu sau khi đăng nhập lần đầu!`);
-            loadAccounts(currentPage); // Tải lại trang hiện tại
+
+            // Đổ dữ liệu vào Modal
+            document.getElementById('resetUname').textContent = data.username;
+            document.getElementById('resetTempPwd').textContent = data.temporaryPassword;
+
+            // Hiện Modal
+            document.getElementById('successResetModal').style.display = 'block';
+
+            // Gắn sự kiện cho nút Copy
+            document.getElementById('btnCopyResetInfo').onclick = function() {
+                const copyText = `Username: ${data.username}\nMật khẩu tạm: ${data.temporaryPassword}`;
+
+                navigator.clipboard.writeText(copyText).then(() => {
+                    alert('Đã copy vào khay nhớ tạm! Bạn có thể Paste (Ctrl+V) cho nhân viên.');
+                    document.getElementById('successResetModal').style.display = 'none'; // Đóng modal
+                });
+            };
+
+            loadAccounts(currentPage);
         } else {
             alert('Lỗi khi reset mật khẩu!');
         }
