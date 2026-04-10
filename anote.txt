@@ -14,7 +14,7 @@ Các vấn đề của khi đăng nhập với role 'Nhân viên':
 4. Modal sửa hiện ra nhưng ấn vào nút X ở góc hoặc ấn hủy để closeModal -- > không nhận ở trang BĐS, khách thuê, chủ sở hữu
 
 
-- khi thêm hợp đồng mới -> BĐS  phải tự đổi trạng thái
+- khi thêm hợp đồng mới -> BĐS  phải tự đổi trạng thái từ trống sang cho thuê thì có hợp lí không nhỉ
 - admin có thêm nút duyện hoặc tự chối thanh toán, hợp đồng
 - khong dc hien thi admin o cho nhan vien
 - lỗi khóa ngoại khi xóa chủ sở hữu
