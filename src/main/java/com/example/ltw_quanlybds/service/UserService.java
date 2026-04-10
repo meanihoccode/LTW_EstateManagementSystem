@@ -34,6 +34,11 @@ public class UserService {
         return userRepository.searchStaffs(keyword, pageable);
     }
 
+    public Page<User> getUsersWithAccountsPaged(int page, int size, String keyword, String role) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return userRepository.searchUsersWithAccounts(keyword, role, pageable);
+    }
+
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }

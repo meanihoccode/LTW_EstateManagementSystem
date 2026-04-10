@@ -19,4 +19,15 @@ public interface UserRepository extends JpaRepository<User,Integer> {
             "s.phone LIKE CONCAT('%', :keyword, '%') OR " +
             "s.role LIKE CONCAT('%', :keyword, '%'))")
     Page<User> searchStaffs(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("SELECT u FROM User u WHERE u.account IS NOT NULL AND " +
+            "(:role IS NULL OR :role = '' OR :role = 'all' OR u.account.role = :role) AND " +
+            "(:keyword IS NULL OR :keyword = '' OR " +
+            "u.fullName LIKE CONCAT('%', :keyword, '%') OR " +
+            "u.phone LIKE CONCAT('%', :keyword, '%') OR " +
+            "u.account.username LIKE CONCAT('%', :keyword, '%'))")
+    Page<User> searchUsersWithAccounts(
+            @Param("keyword") String keyword,
+            @Param("role") String role,
+            Pageable pageable);
 }

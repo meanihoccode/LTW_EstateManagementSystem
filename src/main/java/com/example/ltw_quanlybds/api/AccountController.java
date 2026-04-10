@@ -75,6 +75,15 @@ public class AccountController {
         return ResponseEntity.ok(loginResponse);
     }
 
+    @GetMapping("/accounts/paged")
+    public ResponseEntity<Page<User>> getAccountsPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "4") int size, // Phân trang tài khoản chỉ 4 thẻ/trang như cũ
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, defaultValue = "all") String role) {
+
+        return ResponseEntity.ok(userService.getUsersWithAccountsPaged(page, size, keyword, role));
+    }
     // Admin xem danh sách tất cả tài khoản
     @GetMapping("/accounts")
     public ResponseEntity<?> getAllAccounts() {
