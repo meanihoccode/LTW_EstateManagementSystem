@@ -58,13 +58,13 @@ async function loadProperties() {
         properties.forEach(prop => {
             // 👉 Nếu bạn MÚỐN HIỆN TẤT CẢ BĐS kể cả đang cho thuê, hãy bỏ dòng if(...) đi.
             // Nghiệp vụ chuẩn: Chỉ hiện BĐS "Trống"
-            if (prop.status === 'Trống') {
+            // if (prop.status === 'Trống') {
                 const option = document.createElement('option');
                 option.value = prop.id;
                 // Hiển thị ID để dễ phân biệt
                 option.textContent = `[ID: ${prop.id}] ${prop.name} - ${prop.address}`;
                 select.appendChild(option);
-            }
+        // }
         });
     } catch (error) {
         console.error("Error loading properties:", error);
@@ -227,13 +227,30 @@ async function saveContract(e) {
             body: JSON.stringify(contract)
         });
 
-        if (!response.ok) throw new Error(await response.text());
+        // ==========================================
+        // ĐOẠN ĐÃ SỬA: BẮT LỖI VÀ CHỈ LẤY MESSAGE
+        // ==========================================
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMessage = "Đã xảy ra lỗi từ hệ thống!";
+            try {
+                // Thử ép kiểu chuỗi lỗi về dạng JSON Object
+                const errorJson = JSON.parse(errorText);
+                // Nếu ép kiểu thành công thì bốc lấy phần tử .message
+                errorMessage = errorJson.message || errorText;
+            } catch (parseError) {
+                // Nếu Backend không trả JSON mà trả HTML/Text thường (ví dụ sập server)
+                errorMessage = errorText;
+            }
+            throw new Error(errorMessage);
+        }
 
         alert((editingId ? 'Cập nhật' : 'Thêm') + ' hợp đồng thành công!');
         closeModal();
-        loadContracts(currentPage); // Refresh lại trang hiện tại
+        loadContracts(currentPage);
     } catch (error) {
         console.error("Error saving contract:", error);
+        // Bây giờ error.message sẽ chỉ hiện đúng câu thông báo tiếng Việt
         alert('Lỗi: ' + error.message);
     }
 }

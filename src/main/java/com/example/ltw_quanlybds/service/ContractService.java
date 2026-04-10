@@ -1,7 +1,6 @@
 package com.example.ltw_quanlybds.service;
 
 import com.example.ltw_quanlybds.entity.Contract;
-import com.example.ltw_quanlybds.entity.Owner;
 import com.example.ltw_quanlybds.entity.Property;
 import com.example.ltw_quanlybds.entity.Tenant;
 import com.example.ltw_quanlybds.exception.ResourceNotFoundException;
@@ -19,7 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 @Service
-@Transactional // Rất quan trọng: Đảm bảo nếu lưu Hợp đồng lỗi thì BĐS cũng sẽ rollback lại trạng thái cũ
+@Transactional
 public class ContractService {
     @Autowired
     private ContractRepository contractRepository;
@@ -52,16 +51,31 @@ public class ContractService {
     // 1. TỰ ĐỘNG KHI THÊM MỚI HỢP ĐỒNG
     // ===============================================
     public Contract createContract(Contract contract) {
+        // BƯỚC 1: KIỂM TRA TRÙNG LẶP THỜI GIAN TRƯỚC TIÊN
+        long overlaps = contractRepository.countOverlappingContracts(
+                contract.getPropertyId(),
+                contract.getStartDate(),
+                contract.getEndDate(),
+                -1 // Truyền -1 vì là tạo mới, chưa có ID hợp đồng
+        );
+
+        if (overlaps > 0) {
+            throw new RuntimeException("Thời gian này Bất động sản đã có người thuê hoặc đặt cọc!");
+        }
+
+        // BƯỚC 2: CẬP NHẬT THÔNG TIN VÀ TRẠNG THÁI
         if (contract.getPropertyId() != null) {
             Property property = propertyRepository.findById(contract.getPropertyId())
                     .orElseThrow(() -> new ResourceNotFoundException("Property not found with id: " + contract.getPropertyId()));
 
-            // LOGIC KIỂM TRA & ĐỔI TRẠNG THÁI BĐS
-            if (!"Trống".equals(property.getStatus())) {
-                throw new RuntimeException("Bất động sản này đang không Trống, không thể tạo hợp đồng!");
-            }
+            // Nếu bạn cho phép "Đặt cọc trước" cho tháng sau, bạn có thể XÓA đoạn if check "Trống" này đi.
+            // Nếu giữ lại, nhà phải đang trống thì mới tạo được hợp đồng.
+//            if (!"Trống".equals(property.getStatus())) {
+//                throw new RuntimeException("Bất động sản này đang không Trống, không thể tạo hợp đồng!");
+//            }
+
             property.setStatus("Cho thuê");
-            propertyRepository.save(property); // Lưu trạng thái mới của BĐS
+            propertyRepository.save(property);
 
             contract.setProperty(property);
         }
@@ -81,21 +95,26 @@ public class ContractService {
     public Contract updateContract(Integer id, Contract contractDetails) {
         Contract contract = getContractById(id);
 
-        if (contractDetails.getStartDate() != null) {
-            contract.setStartDate(contractDetails.getStartDate());
-        }
-        if (contractDetails.getEndDate() != null) {
-            contract.setEndDate(contractDetails.getEndDate());
-        }
-        if (contractDetails.getDeposit() != null) {
-            contract.setDeposit(contractDetails.getDeposit());
+        // BƯỚC 1: KIỂM TRA TRÙNG LẶP THỜI GIAN
+        Integer propId = contractDetails.getPropertyId() != null ? contractDetails.getPropertyId() : contract.getProperty().getId();
+        java.time.LocalDate sDate = contractDetails.getStartDate() != null ? contractDetails.getStartDate() : contract.getStartDate();
+        java.time.LocalDate eDate = contractDetails.getEndDate() != null ? contractDetails.getEndDate() : contract.getEndDate();
+
+        long overlaps = contractRepository.countOverlappingContracts(propId, sDate, eDate, id);
+
+        if (overlaps > 0) {
+            throw new RuntimeException("Thời gian này Bất động sản đã có người thuê hoặc đặt cọc!");
         }
 
-        // LOGIC KHI ĐỔI TRẠNG THÁI HỢP ĐỒNG
+        // BƯỚC 2: CẬP NHẬT CÁC TRƯỜNG DỮ LIỆU
+        if (contractDetails.getStartDate() != null) contract.setStartDate(contractDetails.getStartDate());
+        if (contractDetails.getEndDate() != null) contract.setEndDate(contractDetails.getEndDate());
+        if (contractDetails.getDeposit() != null) contract.setDeposit(contractDetails.getDeposit());
+
+        // LOGIC ĐỔI TRẠNG THÁI
         if (contractDetails.getStatus() != null) {
             contract.setStatus(contractDetails.getStatus());
 
-            // Nếu hợp đồng chuyển sang "Kết thúc" thì phải trả BĐS về trạng thái "Trống"
             if ("Kết thúc".equals(contractDetails.getStatus())) {
                 Property property = contract.getProperty();
                 if (property != null) {
@@ -125,13 +144,14 @@ public class ContractService {
     public void deleteContract(Integer id) {
         Contract contract = getContractById(id);
 
-        // Trả BĐS về trạng thái Trống trước khi xóa hợp đồng
+        // Trả BĐS về trạng thái Trống
         Property property = contract.getProperty();
         if (property != null) {
             property.setStatus("Trống");
             propertyRepository.save(property);
         }
 
+        // Xóa thẳng tay, không check overlaps ở đây
         contractRepository.deleteById(id);
     }
 
