@@ -45,5 +45,8 @@ public interface ContractRepository extends JpaRepository<Contract,Integer> {
     // Tìm các hợp đồng có ngày kết thúc nhỏ hơn ngày hiện tại và đang có Hiệu lực
         @Query("SELECT c FROM Contract c WHERE c.endDate < CURRENT_DATE AND c.status = 'Hiệu lực'")
         List<Contract> findExpiredContracts();
+
+        @Query("SELECT c FROM Contract c WHERE c.startDate = CURRENT_DATE AND c.status = 'Hiệu lực'")
+        List<Contract> findContractsStartingToday();
     }
 

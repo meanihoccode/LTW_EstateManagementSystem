@@ -44,6 +44,16 @@ public class ContractSchedulerService {
             System.out.println("Đã tự động kết thúc hợp đồng ID: " + contract.getId());
         }
 
+        List<Contract> startingToday = contractRepository.findContractsStartingToday();
+        for (Contract c : startingToday) {
+            Property p = c.getProperty();
+            if (p != null) {
+                p.setStatus("Cho thuê");
+                propertyRepository.save(p);
+            }
+        }
+
         System.out.println("--- Hoàn thành quét hợp đồng ---");
     }
+
 }

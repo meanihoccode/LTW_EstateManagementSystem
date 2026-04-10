@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/contracts")
@@ -48,12 +49,6 @@ public class ContractController {
         return ResponseEntity.ok(updatedContract);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteContract(@PathVariable Integer id) {
-        contractService.deleteContract(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/totalActiveContracts")
     public ResponseEntity<Long> getTotalActiveContracts() {
         long totalActiveContracts = contractService.getTotalActiveContracts();
@@ -61,7 +56,11 @@ public class ContractController {
     }
 
 
-
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Contract> updateContractStatus(@PathVariable Integer id, @RequestBody Map<String, String> payload) {
+        String newStatus = payload.get("status");
+        return ResponseEntity.ok(contractService.updateStatus(id, newStatus));
+    }
     @GetMapping("/expiringContracts")
     public ResponseEntity<?> getExpiringContracts() {
         return ResponseEntity.ok(contractService.getExpiringContracts());
