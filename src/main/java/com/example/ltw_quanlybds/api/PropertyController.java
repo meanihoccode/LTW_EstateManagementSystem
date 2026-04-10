@@ -21,9 +21,15 @@ public class PropertyController {
 
 
 
-    // Thay thế hàm getAllProperties() cũ bằng hàm này
+    // 1. API GỐC (GIỮ NGUYÊN): Trả về toàn bộ danh sách dùng cho Dropdown
     @GetMapping
-    public ResponseEntity<Page<Property>> getAllProperties(
+    public ResponseEntity<List<Property>> getAllProperties() {
+        return ResponseEntity.ok(propertyService.getAllProperties());
+    }
+
+    // 2. API MỚI DÀNH RIÊNG CHO BẢNG PHÂN TRANG (Thêm hậu tố /paged)
+    @GetMapping("/paged")
+    public ResponseEntity<Page<Property>> getPropertiesPaged(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "8") int size,
             @RequestParam(required = false) String keyword,

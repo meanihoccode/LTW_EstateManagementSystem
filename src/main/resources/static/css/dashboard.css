@@ -843,3 +843,31 @@ body.dark-mode .page-btn.active {
 body.dark-mode .page-ellipsis {
     color: #666;
 }
+
+/* 1. Đảm bảo form-row chia đều không gian */
+.form-row {
+    display: flex;
+    gap: 15px; /* Tùy chỉnh khoảng cách giữa 2 cột cho đẹp */
+    width: 100%;
+}
+
+/* 2. Ép form-group chia đúng tỷ lệ và KHÔNG được phình to */
+.form-group {
+    flex: 1;
+    min-width: 0; /* RẤT QUAN TRỌNG: Thuộc tính này ngăn flex-item phình to theo nội dung */
+    width: 100%;
+}
+
+/* 3. Xử lý nội dung bên trong select/input */
+.form-group select,
+.form-group input {
+    width: 100%; /* Bắt buộc phần tử con chỉ rộng tối đa bằng thẻ cha */
+    box-sizing: border-box; /* Tính cả padding/border vào kích thước */
+}
+
+/* 4. Cắt chữ dài bằng dấu "..." cho thẻ select */
+.form-group select {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

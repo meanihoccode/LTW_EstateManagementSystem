@@ -46,7 +46,7 @@ async function loadProperties(page = 0) {
 
     try {
         // Gắn Query Params để Spring Boot xử lý phân trang & tìm kiếm
-        const url = `/api/properties?page=${page}&size=${pageSize}&keyword=${encodeURIComponent(keyword)}&status=${encodeURIComponent(status)}`;
+        const url = `/api/properties/paged?page=${page}&size=${pageSize}&keyword=${encodeURIComponent(keyword)}&status=${encodeURIComponent(status)}`;
 
         const response = await fetch(url);
         if (!response.ok) throw new Error('Lỗi tải danh sách bất động sản');

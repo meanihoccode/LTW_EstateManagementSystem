@@ -4,6 +4,7 @@ import com.example.ltw_quanlybds.entity.Contract;
 import com.example.ltw_quanlybds.service.ContractService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +15,17 @@ import java.util.List;
 public class ContractController {
     @Autowired
     private ContractService contractService;
+
+
+    @GetMapping("/paged")
+    public ResponseEntity<Page<Contract>> getAllContracts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status) {
+
+        return ResponseEntity.ok(contractService.getContractsPaged(page, size, keyword, status));
+    }
 
     @GetMapping
     public ResponseEntity<List<Contract>> findAll() {
