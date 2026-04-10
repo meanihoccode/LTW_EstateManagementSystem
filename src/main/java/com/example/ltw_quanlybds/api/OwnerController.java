@@ -9,13 +9,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+import org.springframework.data.domain.Page;
 @RestController
 @RequestMapping("/api/owners")
 @CrossOrigin(origins = "*")
 public class OwnerController {
     @Autowired
     private OwnerService ownerService;
+
+    @GetMapping("/paged")
+    public ResponseEntity<Page<Owner>> getOwnersPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size,
+            @RequestParam(required = false) String keyword) {
+
+        return ResponseEntity.ok(ownerService.getOwnersPaged(page, size, keyword));
+    }
 
     @GetMapping
     public ResponseEntity<List<Owner>> getAllOwners() {

@@ -8,13 +8,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 @Service
 @Transactional
 
 public class OwnerService {
     @Autowired
     private OwnerRepository ownerRepository;
+
+    public Page<Owner> getOwnersPaged(int page, int size, String keyword) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return ownerRepository.searchOwners(keyword, pageable);
+    }
 
     public List<Owner> getAllOwners() {
         return ownerRepository.findAll();
