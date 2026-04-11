@@ -1153,3 +1153,37 @@ body.dark-mode .pagination-buttons button:disabled {
     border-color: #333;
     opacity: 0.6;
 }
+
+/* ==========================================================================
+   BADGE STATUS CHO BẤT ĐỘNG SẢN (Light Mode)
+   ========================================================================== */
+
+/* Trạng thái: Đang giữ chỗ (Chờ duyệt hợp đồng) */
+.badge.reserved {
+    background-color: #fff3cd; /* Nền vàng nhạt */
+    color: #856404;           /* Chữ vàng đậm */
+    border: 1px solid #ffeeba;
+}
+
+/* Trạng thái: Đã đặt cọc (Thuê trong tương lai) */
+.badge.deposited {
+    background-color: #e0e8f9; /* Nền xanh lam nhạt */
+    color: #2b52b6;           /* Chữ xanh lam đậm */
+    border: 1px solid #c8d7f5;
+}
+
+/* ==========================================================================
+   BADGE STATUS CHO BẤT ĐỘNG SẢN (Dark Mode)
+   ========================================================================== */
+
+body.dark-mode .badge.reserved {
+    background-color: #4a3a1a;
+    color: #ffda6a;
+    border-color: #665017;
+}
+
+body.dark-mode .badge.deposited {
+    background-color: #1a3055;
+    color: #8bb4f6;
+    border-color: #244273;
+}

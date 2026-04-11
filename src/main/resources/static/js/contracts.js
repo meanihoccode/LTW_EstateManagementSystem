@@ -116,7 +116,7 @@ function renderTable(dataToRender) {
         if (userRole !== 'Nhân viên' && c.status === 'Chờ duyệt') {
             actions += `
                 <button class="btn-small" style="background-color:#4CAF50;color:white;margin-left:5px;" onclick="quickApprove(${c.id}, 'Hiệu lực')">Duyệt</button>
-                <button class="btn-small" style="background-color:#f44336;color:white;margin-left:5px;" onclick="quickApprove(${c.id}, 'Từ chối')">Hủy</button>
+                <button class="btn-small" style="background-color:#f44336;color:white;margin-left:5px;" onclick="quickApprove(${c.id}, 'Từ chối')">Từ chối</button>
             `;
         }
 

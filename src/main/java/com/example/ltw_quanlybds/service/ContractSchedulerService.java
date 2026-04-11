@@ -21,8 +21,8 @@ public class ContractSchedulerService {
     private PropertyRepository propertyRepository;
 
     // Chạy tự động vào lúc 00:01:00 (1 phút sau nửa đêm) mỗi ngày
-//    @Scheduled(cron = "0 1 0 * * ?")
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(cron = "0 1 0 * * ?")
+//    @Scheduled(fixedRate = 60000)
     @Transactional
     public void autoExpireContracts() {
         System.out.println("--- Bắt đầu quét hợp đồng hết hạn ---");

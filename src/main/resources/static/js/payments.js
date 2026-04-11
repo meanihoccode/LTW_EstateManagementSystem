@@ -1,15 +1,30 @@
 let paymentsData = [];
 let currentPage = 0;
 const pageSize = 8;
+let userRole = '';
 
 document.addEventListener('DOMContentLoaded', function() {
-    loadPayments(0);
-    loadContracts();
-    setupEventListeners();
+    fetchUserRole().then(() => {
+        loadPayments(0);
+        loadContracts();
+        setupEventListeners();
+    });
 });
 
+async function fetchUserRole() {
+    try {
+        const response = await fetch('/api/me/role');
+        if (response.ok) {
+            const data = await response.json();
+            userRole = data.role || '';
+        }
+    } catch (error) {
+        console.error('Lỗi lấy role:', error);
+    }
+}
+
 // ==========================================
-// 1. DATA FETCHING & PHÂN TRANG BACKEND
+// 1. DATA FETCHING
 // ==========================================
 async function loadPayments(page = 0) {
     currentPage = page;
@@ -18,13 +33,11 @@ async function loadPayments(page = 0) {
 
     try {
         const url = `/api/payments/paged?page=${page}&size=${pageSize}&keyword=${encodeURIComponent(keyword)}&status=${encodeURIComponent(status)}`;
-
         const response = await fetch(url);
         if (!response.ok) throw new Error('Lỗi tải danh sách thanh toán');
 
         const pageData = await response.json();
 
-        // Kiểm tra an toàn dữ liệu trả về
         if (Array.isArray(pageData)) {
             paymentsData = pageData;
             renderRealPagination(1, 0);
@@ -34,7 +47,6 @@ async function loadPayments(page = 0) {
         } else {
             paymentsData = [];
         }
-
         renderTable(paymentsData);
     } catch (error) {
         console.error('Error: ', error);
@@ -45,7 +57,6 @@ async function loadPayments(page = 0) {
 async function loadContracts() {
     const select = document.getElementById('hopDong');
     try {
-        // Dùng API gốc không phân trang để lấy List cho dropdown
         const response = await fetch('/api/contracts');
         if (!response.ok) throw new Error('Lỗi tải hợp đồng');
 
@@ -53,7 +64,6 @@ async function loadContracts() {
         const contracts = Array.isArray(contractsData) ? contractsData : (contractsData.content || []);
 
         while (select.options.length > 1) select.remove(1);
-
         contracts.forEach(contract => {
             const option = document.createElement('option');
             option.value = contract.id;
@@ -78,6 +88,16 @@ function renderTable(dataToRender) {
 
     tbody.innerHTML = dataToRender.map(p => {
         const contractId = p.contract ? p.contract.id : '';
+        let actions = `<button class="btn-small" onclick="editPayment(${p.id})">Sửa</button>`;
+
+        // Nút duyệt nhanh cho Admin/Quản lý
+        if (userRole !== 'Nhân viên' && p.status === 'Chờ duyệt') {
+            actions += `
+                <button class="btn-small" style="background-color:#4CAF50;color:white;margin-left:5px;" onclick="quickApprove(${p.id}, 'Đã duyệt')">Duyệt</button>
+                <button class="btn-small" style="background-color:#f44336;color:white;margin-left:5px;" onclick="quickApprove(${p.id}, 'Từ chối')">Từ chối</button>
+            `;
+        }
+
         return `
         <tr>
             <td>#${p.id}</td>
@@ -86,10 +106,7 @@ function renderTable(dataToRender) {
             <td>${p.amount ? p.amount.toLocaleString('vi-VN') : 0}Đ</td>
             <td>${p.method || ''}</td>
             <td><span class="badge ${getStatusClass(p.status)}">${p.status || ''}</span></td>
-            <td>
-                <button class="btn-small" onclick="editPayment(${p.id})">Sửa</button>
-                <button class="btn-small btn-danger" onclick="deletePayment(${p.id})">Xóa</button>
-            </td>
+            <td>${actions}</td>
         </tr>
     `;
     }).join('');
@@ -99,7 +116,6 @@ function renderRealPagination(totalPages, current) {
     const container = document.getElementById('paginationButtons');
     if (!container) return;
     container.innerHTML = '';
-
     if (totalPages <= 1) return;
 
     let prevHtml = `<button onclick="loadPayments(${current - 1})" ${current === 0 ? 'disabled' : ''}>&laquo;</button>`;
@@ -133,7 +149,6 @@ function setupEventListeners() {
     document.getElementById('cancelBtn')?.addEventListener('click', closeModal);
     document.getElementById('paymentForm')?.addEventListener('submit', savePayment);
 
-    // Gắn event keypress (Enter) thay vì input để giảm tải server
     document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') filterTable();
     });
@@ -153,6 +168,15 @@ function openModal() {
     document.getElementById('modalTitle').textContent = 'Thêm Thanh Toán';
     document.getElementById('paymentForm').reset();
     delete document.getElementById('paymentForm').dataset.editingId;
+
+    const statusDropdown = document.getElementById('trangThai');
+    if (userRole === 'Nhân viên') {
+        statusDropdown.value = 'Chờ duyệt';
+        statusDropdown.disabled = true;
+    } else {
+        statusDropdown.disabled = false;
+    }
+
     document.getElementById('paymentModal').style.display = 'block';
 }
 
@@ -168,7 +192,9 @@ async function savePayment(e) {
     const paymentDate = document.getElementById('ngayThanhToan').value;
     const amount = document.getElementById('soTien').value;
     const method = document.getElementById('phuongThuc').value;
-    const status = document.getElementById('trangThai').value;
+
+    const statusDropdown = document.getElementById('trangThai');
+    const status = statusDropdown.disabled ? 'Chờ duyệt' : statusDropdown.value;
 
     if (!contractId || !paymentDate || !amount || !method || !status) {
         alert('Vui lòng điền đầy đủ thông tin');
@@ -194,13 +220,17 @@ async function savePayment(e) {
             body: JSON.stringify(payment)
         });
 
-        if (!response.ok) throw new Error(await response.text());
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMessage = "Đã xảy ra lỗi hệ thống!";
+            try { errorMessage = JSON.parse(errorText).message || errorText; } catch (e) { errorMessage = errorText; }
+            throw new Error(errorMessage);
+        }
 
         alert((editingId ? 'Cập nhật' : 'Thêm') + ' thanh toán thành công!');
         closeModal();
         loadPayments(currentPage);
     } catch (error) {
-        console.error('Error saving payment:', error);
         alert('Lỗi: ' + error.message);
     }
 }
@@ -216,28 +246,43 @@ async function editPayment(id) {
         document.getElementById('ngayThanhToan').value = payment.paymentDate || '';
         document.getElementById('soTien').value = payment.amount || '';
         document.getElementById('phuongThuc').value = payment.method || '';
-        document.getElementById('trangThai').value = payment.status || '';
+
+        const statusDropdown = document.getElementById('trangThai');
+        statusDropdown.value = payment.status || 'Chờ duyệt';
+        if (userRole === 'Nhân viên') {
+            statusDropdown.disabled = true;
+        } else {
+            statusDropdown.disabled = false;
+        }
 
         document.getElementById('paymentForm').dataset.editingId = id;
         document.getElementById('modalTitle').textContent = 'Sửa Thanh Toán';
         document.getElementById('paymentModal').style.display = 'block';
     } catch (error) {
-        console.error('Error:', error);
         alert('Lỗi khi tải chi tiết thanh toán.');
     }
 }
 
-async function deletePayment(id) {
-    if (!confirm('Bạn có chắc muốn xóa giao dịch thanh toán này?')) return;
+async function quickApprove(id, newStatus) {
+    if (!confirm(`Bạn có chắc chắn muốn ${newStatus === 'Đã duyệt' ? 'DUYỆT' : 'TỪ CHỐI'} thanh toán này?`)) return;
 
     try {
-        const response = await fetch('/api/payments/' + id, { method: 'DELETE' });
-        if (!response.ok) throw new Error('Failed to delete payment');
+        const response = await fetch(`/api/payments/${id}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
 
-        alert('Xóa thành công!');
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMessage = "Đã xảy ra lỗi!";
+            try { errorMessage = JSON.parse(errorText).message || errorText; } catch (e) { errorMessage = errorText; }
+            throw new Error(errorMessage);
+        }
+
+        alert('Thao tác thành công!');
         loadPayments(currentPage);
     } catch (error) {
-        console.error('Error:', error);
-        alert('Lỗi khi xóa thanh toán.');
+        alert('Lỗi: ' + error.message);
     }
 }

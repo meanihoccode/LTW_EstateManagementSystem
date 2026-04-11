@@ -27,4 +27,8 @@ public interface PropertyRepository extends JpaRepository<Property, Integer> {
             @Param("keyword") String keyword,
             @Param("status") String status,
             Pageable pageable);
+
+    // Ép Spring Boot phải tìm theo p.owner.id (object owner thực sự)
+    @Query("SELECT COUNT(p) > 0 FROM Property p WHERE p.owner.id = :ownerId")
+    boolean existsByOwnerId(@Param("ownerId") Integer ownerId);
 }

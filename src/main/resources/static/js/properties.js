@@ -147,6 +147,8 @@ function getStatusClass(status) {
         case 'Cho thuê': return 'rented';
         case 'Trống': return 'empty';
         case 'Bảo trì': return 'maintenance';
+        case 'Đang giữ chỗ': return 'reserved';  // Thêm trạng thái này
+        case 'Đã đặt cọc': return 'deposited';   // Thêm trạng thái này
         default: return '';
     }
 }

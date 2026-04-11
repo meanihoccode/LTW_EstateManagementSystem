@@ -3,6 +3,7 @@ package com.example.ltw_quanlybds.service;
 import com.example.ltw_quanlybds.entity.Owner;
 import com.example.ltw_quanlybds.exception.ResourceNotFoundException;
 import com.example.ltw_quanlybds.repository.OwnerRepository;
+import com.example.ltw_quanlybds.repository.PropertyRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,9 @@ import org.springframework.data.domain.Sort;
 public class OwnerService {
     @Autowired
     private OwnerRepository ownerRepository;
+
+    @Autowired
+    private PropertyRepository propertyRepository;
 
     public Page<Owner> getOwnersPaged(int page, int size, String keyword) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
@@ -57,6 +61,11 @@ public class OwnerService {
     }
 
     public void deleteOwner(Integer id) {
+        // KIỂM TRA: Chủ sở hữu này có đang sở hữu BĐS nào không?
+        if (propertyRepository.existsByOwnerId(id)) {
+            throw new RuntimeException("Không thể xóa: Chủ sở hữu này đang có Bất động sản trong hệ thống. Vui lòng chuyển giao BĐS trước khi xóa!");
+        }
+
         ownerRepository.deleteById(id);
     }
 }
