@@ -1,16 +1,32 @@
 let contractsData = [];
 let currentPage = 0;
-const pageSize = 8; // Cố định 8 đơn 1 trang
+const pageSize = 8;
+let userRole = ''; // Lưu quyền của user
 
 document.addEventListener('DOMContentLoaded', function() {
-    loadContracts(0);
-    loadProperties();
-    loadTenants();
-    setupEventListeners();
+    // Phải lấy role xong mới load dữ liệu và gán sự kiện
+    fetchUserRole().then(() => {
+        loadContracts(0);
+        loadProperties();
+        loadTenants();
+        setupEventListeners();
+    });
 });
 
+async function fetchUserRole() {
+    try {
+        const response = await fetch('/api/me/role');
+        if (response.ok) {
+            const data = await response.json();
+            userRole = data.role || '';
+        }
+    } catch (error) {
+        console.error('Lỗi lấy role:', error);
+    }
+}
+
 // ==========================================
-// 1. DATA FETCHING & PHÂN TRANG BACKEND
+// 1. DATA FETCHING (PHÂN TRANG BACKEND)
 // ==========================================
 async function loadContracts(page = 0) {
     currentPage = page;
@@ -25,7 +41,6 @@ async function loadContracts(page = 0) {
 
         const pageData = await response.json();
 
-        // Kiểm tra an toàn xem Backend trả về chuẩn Page chưa
         if (Array.isArray(pageData)) {
             contractsData = pageData;
             renderRealPagination(1, 0);
@@ -43,35 +58,25 @@ async function loadContracts(page = 0) {
     }
 }
 
-// Load dropdown BĐS
 async function loadProperties() {
     const select = document.getElementById('batDongSan');
     try {
-        // Bây giờ API /api/properties đã trả về List đầy đủ như cũ
         const response = await fetch('/api/properties');
         if (!response.ok) throw new Error("Failed to load properties");
-
         const properties = await response.json();
 
         while (select.options.length > 1) select.remove(1);
-
         properties.forEach(prop => {
-            // 👉 Nếu bạn MÚỐN HIỆN TẤT CẢ BĐS kể cả đang cho thuê, hãy bỏ dòng if(...) đi.
-            // Nghiệp vụ chuẩn: Chỉ hiện BĐS "Trống"
-            if (prop.status === 'Trống') {
-                const option = document.createElement('option');
-                option.value = prop.id;
-                // Hiển thị ID để dễ phân biệt
-                option.textContent = `[ID: ${prop.id}] ${prop.name} - ${prop.address}`;
-                select.appendChild(option);
-            }
+            const option = document.createElement('option');
+            option.value = prop.id;
+            option.textContent = `[ID: ${prop.id}] ${prop.name} - ${prop.address}`;
+            select.appendChild(option);
         });
     } catch (error) {
         console.error("Error loading properties:", error);
     }
 }
 
-// Load dropdown Khách thuê
 async function loadTenants() {
     const select = document.getElementById('khachThue');
     try {
@@ -104,28 +109,36 @@ function renderTable(dataToRender) {
         return;
     }
 
-    tbody.innerHTML = dataToRender.map(c => `
-        <tr>
-            <td>#${c.id}</td>
-            <td>${c.property ? c.property.name : 'N/A'}</td>
-            <td>${c.tenant ? c.tenant.fullName : 'N/A'}</td>
-            <td>${c.startDate}</td>
-            <td>${c.endDate}</td>
-            <td>${c.deposit ? c.deposit.toLocaleString('vi-VN') : 0}Đ</td>
-            <td><span class="badge ${getStatusClass(c.status)}">${c.status}</span></td>
-            <td>
-                <button class="btn-small" onclick="editContract(${c.id})">Sửa</button>
-                <button class="btn-small btn-danger" onclick="deleteContract(${c.id})">Xóa</button>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = dataToRender.map(c => {
+        let actions = `<button class="btn-small" onclick="editContract(${c.id})">Sửa</button>`;
+
+        // Hiện nút Duyệt / Từ chối cho Admin/Quản lý đối với đơn Chờ duyệt
+        if (userRole !== 'Nhân viên' && c.status === 'Chờ duyệt') {
+            actions += `
+                <button class="btn-small" style="background-color:#4CAF50;color:white;margin-left:5px;" onclick="quickApprove(${c.id}, 'Hiệu lực')">Duyệt</button>
+                <button class="btn-small" style="background-color:#f44336;color:white;margin-left:5px;" onclick="quickApprove(${c.id}, 'Từ chối')">Từ chối</button>
+            `;
+        }
+
+        return `
+            <tr>
+                <td>#${c.id}</td>
+                <td>${c.property ? c.property.name : 'N/A'}</td>
+                <td>${c.tenant ? c.tenant.fullName : 'N/A'}</td>
+                <td>${c.startDate}</td>
+                <td>${c.endDate}</td>
+                <td>${c.deposit ? c.deposit.toLocaleString('vi-VN') : 0}Đ</td>
+                <td><span class="badge ${getStatusClass(c.status)}">${c.status}</span></td>
+                <td>${actions}</td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function renderRealPagination(totalPages, current) {
     const container = document.getElementById('paginationButtons');
     if (!container) return;
     container.innerHTML = '';
-
     if (totalPages <= 1) return;
 
     let prevHtml = `<button onclick="loadContracts(${current - 1})" ${current === 0 ? 'disabled' : ''}>&laquo;</button>`;
@@ -144,7 +157,7 @@ function renderRealPagination(totalPages, current) {
 function getStatusClass(status) {
     switch(status) {
         case 'Hiệu lực': return 'active';
-        case 'Kết thúc': return 'inactive';
+        case 'Kết thúc': case 'Từ chối': case 'Đã hủy': return 'inactive';
         case 'Chờ duyệt': return 'pending';
         default: return '';
     }
@@ -159,7 +172,6 @@ function setupEventListeners() {
     document.getElementById('cancelBtn')?.addEventListener('click', closeModal);
     document.getElementById('contractForm')?.addEventListener('submit', saveContract);
 
-    // Dùng keypress thay vì keyup để tránh gọi API liên tục
     document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') filterTable();
     });
@@ -172,13 +184,23 @@ function setupEventListeners() {
 }
 
 function filterTable() {
-    loadContracts(0); // Lọc xong luôn quay về trang 1
+    loadContracts(0);
 }
 
 function openModal() {
     document.getElementById('modalTitle').textContent = 'Thêm Hợp Đồng';
     document.getElementById('contractForm').reset();
     delete document.getElementById('contractForm').dataset.editingId;
+
+    // Khóa trạng thái nếu là Nhân viên
+    const statusDropdown = document.getElementById('trangThai');
+    if (userRole === 'Nhân viên') {
+        statusDropdown.value = 'Chờ duyệt';
+        statusDropdown.disabled = true;
+    } else {
+        statusDropdown.disabled = false;
+    }
+
     document.getElementById('contractModal').style.display = 'block';
 }
 
@@ -195,7 +217,10 @@ async function saveContract(e) {
     const startDate = document.getElementById('ngayBatDau').value;
     const endDate = document.getElementById('ngayKetThuc').value;
     const deposit = document.getElementById('tienCoc').value;
-    const status = document.getElementById('trangThai').value;
+
+    // Nếu dropdown bị disabled, JS sẽ không lấy được value, nên phải fallback về "Chờ duyệt"
+    const statusDropdown = document.getElementById('trangThai');
+    const status = statusDropdown.disabled ? 'Chờ duyệt' : statusDropdown.value;
 
     if (!propertyId || !tenantId || !startDate || !endDate || !deposit || !status) {
         alert('Vui lòng điền đầy đủ thông tin');
@@ -218,7 +243,7 @@ async function saveContract(e) {
     };
 
     try {
-        const url = editingId ? '/api/contracts/' + editingId : '/api/contracts';
+        const url = editingId ? `/api/contracts/${editingId}` : '/api/contracts';
         const method = editingId ? 'PUT' : 'POST';
 
         const response = await fetch(url, {
@@ -227,13 +252,23 @@ async function saveContract(e) {
             body: JSON.stringify(contract)
         });
 
-        if (!response.ok) throw new Error(await response.text());
+        // Xử lý lỗi trả về chuyên nghiệp
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMessage = "Đã xảy ra lỗi từ hệ thống!";
+            try {
+                errorMessage = JSON.parse(errorText).message || errorText;
+            } catch (parseError) {
+                errorMessage = errorText;
+            }
+            throw new Error(errorMessage);
+        }
 
         alert((editingId ? 'Cập nhật' : 'Thêm') + ' hợp đồng thành công!');
         closeModal();
-        loadContracts(currentPage); // Refresh lại trang hiện tại
+        loadContracts(currentPage);
     } catch (error) {
-        console.error("Error saving contract:", error);
+        console.error("Lỗi:", error);
         alert('Lỗi: ' + error.message);
     }
 }
@@ -241,39 +276,57 @@ async function saveContract(e) {
 async function editContract(id) {
     try {
         const response = await fetch('/api/contracts/' + id);
-        if (!response.ok) throw new Error("Failed to load contract details");
+        if (!response.ok) throw new Error("Lỗi tải chi tiết hợp đồng");
 
         const contract = await response.json();
 
-        // Kiểm tra xem backend trả về contract.property.id hay contract.propertyId
         document.getElementById('batDongSan').value = contract.property ? contract.property.id : contract.propertyId;
         document.getElementById('khachThue').value = contract.tenant ? contract.tenant.id : contract.tenantId;
         document.getElementById('ngayBatDau').value = contract.startDate;
         document.getElementById('ngayKetThuc').value = contract.endDate;
         document.getElementById('tienCoc').value = contract.deposit;
-        document.getElementById('trangThai').value = contract.status;
+
+        const statusDropdown = document.getElementById('trangThai');
+        statusDropdown.value = contract.status;
+        if (userRole === 'Nhân viên') {
+            statusDropdown.disabled = true;
+        } else {
+            statusDropdown.disabled = false;
+        }
 
         document.getElementById('contractForm').dataset.editingId = id;
         document.getElementById('modalTitle').textContent = 'Sửa Hợp Đồng';
         document.getElementById('contractModal').style.display = 'block';
 
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Lỗi:', error);
         alert('Lỗi khi tải chi tiết hợp đồng.');
     }
 }
 
-async function deleteContract(id) {
-    if (!confirm('Bạn có chắc muốn xóa hợp đồng này?')) return;
+// Hàm duyệt/từ chối nhanh ngay trên bảng
+// Hàm duyệt/từ chối nhanh ngay trên bảng
+async function quickApprove(id, newStatus) {
+    if (!confirm(`Bạn có chắc chắn muốn ${newStatus === 'Hiệu lực' ? 'DUYỆT' : 'TỪ CHỐI'} hợp đồng này?`)) return;
 
     try {
-        const response = await fetch('/api/contracts/' + id, { method: 'DELETE' });
-        if (!response.ok) throw new Error("Failed to delete contract");
+        // 👉 SỬA URL Ở ĐÂY: Thêm /status vào cuối
+        const response = await fetch(`/api/contracts/${id}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
 
-        alert('Xóa thành công!');
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMessage = "Đã xảy ra lỗi!";
+            try { errorMessage = JSON.parse(errorText).message || errorText; } catch (e) { errorMessage = errorText; }
+            throw new Error(errorMessage);
+        }
+
+        alert('Thao tác thành công!');
         loadContracts(currentPage);
     } catch (error) {
-        console.error("Error: ", error);
-        alert('Lỗi khi xóa hợp đồng.');
+        alert('Lỗi: ' + error.message);
     }
 }

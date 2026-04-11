@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -27,6 +28,14 @@ public class PaymentController {
 
         return ResponseEntity.ok(paymentService.getPaymentsPaged(page, size, keyword, status));
     }
+
+    // Thêm API duyệt nhanh trạng thái
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Payment> updatePaymentStatus(@PathVariable Integer id, @RequestBody Map<String, String> payload) {
+        String newStatus = payload.get("status");
+        return ResponseEntity.ok(paymentService.updateStatus(id, newStatus));
+    }
+
     @GetMapping
     public ResponseEntity<List<Payment>> getAllPayments() {
         return ResponseEntity.ok(paymentService.getAllPayments());
@@ -59,11 +68,6 @@ public class PaymentController {
         return ResponseEntity.ok(updatedPayment);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePayment(@PathVariable Integer id) {
-        paymentService.deletePaymentById(id);
-        return ResponseEntity.noContent().build();
-    }
 
     @GetMapping("/recent")
     public ResponseEntity<?> getRecentPayments() {
